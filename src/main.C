@@ -267,7 +267,7 @@ rxvt_term::init (int argc, const char *const *argv)
   Gr_reset ();          /* reset graphics */
 #endif
 
-#if 1
+#if 0
   XSynchronize (display->display, True);
 #endif
 
@@ -1316,7 +1316,7 @@ rxvt_term::im_cb ()
 
 #if defined(HAVE_XSETLOCALE) || defined(HAVE_SETLOCALE)
   if (rs[Rs_imLocale])
-    rxvt_set_locale (rs[Rs_imLocale]);
+    SET_LOCALE (rs[Rs_imLocale]);
 #endif
 
   p = rs[Rs_inputMethod];
@@ -1357,7 +1357,7 @@ rxvt_term::im_cb ()
 done:
 #if defined(HAVE_XSETLOCALE) || defined(HAVE_SETLOCALE)
   if (rs[Rs_imLocale])
-    rxvt_set_locale (locale);
+    SET_LOCALE (locale);
 #endif
 }
 
