@@ -267,7 +267,7 @@ rxvt_term::init (int argc, const char *const *argv)
   Gr_reset ();          /* reset graphics */
 #endif
 
-#if 0
+#if 1
   XSynchronize (display->display, True);
 #endif
 
