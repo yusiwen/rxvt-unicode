@@ -2,7 +2,6 @@ Lines marked with "xterm:" indicate either xterm features ported to rxvt
 or changed rxvt behaviour to make it more compatible to xterm (usually
 xfree86's xterm).
 
-TODO: configurable underline line colour.
 TODO: read property sequence is broken with respect to utf-8 etc.
 FEAT: hotkey font resizing
 FEAT: searchable backlog
@@ -18,7 +17,7 @@ FEAT: tabbed windows (hey, just use screen...)
         - fix atom name enumeration.
         - streamline atom and xft color allocation to reduce startup
           time (12.8s -> 7.8s on my dsl). Still, doing it with only 2-3
-          turnarounds would be much faster, but impossible to implement.
+          turnarounds would be much faster, but impossible to implement(?).
         - do not use XSETROOTPMAP_ID anymore, support ESETROOT_PMAP_ID
           instead.
         - implement underlineColor resource when ENABLE_FRILLS.
