@@ -919,6 +919,14 @@ Return the window id of the terminal window.
 
 Return various integers describing terminal characteristics.
 
+=item $lc_ctype = $term->locale
+
+Returns the LC_CTYPE category string used by this rxvt-unicode.
+
+=item $x_display = $term->display_id
+
+Return the DISPLAY used by rxvt-unicode.
+
 =item $modifiermask = $term->ModLevel3Mask
 
 =item $modifiermask = $term->ModMetaMask
@@ -1170,7 +1178,7 @@ sub add_item {
 sub add_separator {
    my ($self, $sep) = @_;
 
-   $sep ||= "═";
+   $sep ||= "=";
 
    $self->add_item ({
       rend => { normal => "\x1b[0;30;47m", hover => "\x1b[0;30;47m", active => "\x1b[0;30;47m" },
