@@ -129,7 +129,7 @@
 .\" ========================================================================
 .\"
 .IX Title "rxvt 3"
-.TH rxvt 3 "2006-01-10" "6.3" "RXVT-UNICODE"
+.TH rxvt 3 "2006-01-11" "6.3" "RXVT-UNICODE"
 .SH "NAME"
 @@RXVT_NAME@@perl \- rxvt\-unicode's embedded perl interpreter
 .SH "SYNOPSIS"
@@ -246,7 +246,7 @@ hints on what they mean:
 .IP "$text" 4
 .IX Item "$text"
 Rxvt-unicodes special way of encoding text, where one \*(L"unicode\*(R" character
-always represents one screen cell. See row_t for a discussion of this format.
+always represents one screen cell. See ROW_t for a discussion of this format.
 .IP "$string" 4
 .IX Item "$string"
 A perl text string, with an emphasis on \fItext\fR. It can store all unicode
@@ -477,19 +477,9 @@ The basename of the installed binaries, usually \f(CW\*(C`urxvt\*(C'\fR.
 .IX Item "$urxvt::TERM"
 The current terminal. This variable stores the current \f(CW\*(C`urxvt::term\*(C'\fR
 object, whenever a callback/hook is executing.
-.IP "*" 4
 .ie n .Sh "Functions in the ""urxvt"" Package"
 .el .Sh "Functions in the \f(CWurxvt\fP Package"
 .IX Subsection "Functions in the urxvt Package"
-.PD 0
-.IP "$term = new urxvt [arg...]" 4
-.IX Item "$term = new urxvt [arg...]"
-.PD
-Creates a new terminal, very similar as if you had started it with
-\&\f(CW\*(C`system $binfile, arg...\*(C'\fR. Croaks (and probably outputs an error message)
-if the new instance couldn't be created.  Returns \f(CW\*(C`undef\*(C'\fR if the new
-instance didn't initialise perl, and the terminal object otherwise. The
-\&\f(CW\*(C`init\*(C'\fR and \f(CW\*(C`start\*(C'\fR hooks will be called during the call.
 .ie n .IP "urxvt::fatal $errormessage" 4
 .el .IP "urxvt::fatal \f(CW$errormessage\fR" 4
 .IX Item "urxvt::fatal $errormessage"
@@ -505,6 +495,8 @@ that calls this function.
 .Sp
 Using this function has the advantage that its output ends up in the
 correct place, e.g. on stderr of the connecting urxvtc client.
+.Sp
+Messages have a size limit of 1023 bytes currently.
 .IP "$is_safe = urxvt::safe" 4
 .IX Item "$is_safe = urxvt::safe"
 Returns true when it is safe to do potentially unsafe things, such as
@@ -582,6 +574,17 @@ work.
 .ie n .Sh "The ""urxvt::term"" Class"
 .el .Sh "The \f(CWurxvt::term\fP Class"
 .IX Subsection "The urxvt::term Class"
+.ie n .IP "$term = new urxvt::term $envhashref\fR, \f(CW$rxvtname, [arg...]" 4
+.el .IP "$term = new urxvt::term \f(CW$envhashref\fR, \f(CW$rxvtname\fR, [arg...]" 4
+.IX Item "$term = new urxvt::term $envhashref, $rxvtname, [arg...]"
+Creates a new terminal, very similar as if you had started it with system
+\&\f(CW\*(C`$rxvtname, arg...\*(C'\fR. \f(CW$envhashref\fR must be a reference to a \f(CW%ENV\fR\-like
+hash which defines the environment of the new terminal.
+.Sp
+Croaks (and probably outputs an error message) if the new instance
+couldn't be created.  Returns \f(CW\*(C`undef\*(C'\fR if the new instance didn't
+initialise perl, and the terminal object otherwise. The \f(CW\*(C`init\*(C'\fR and
+\&\f(CW\*(C`start\*(C'\fR hooks will be called during this call.
 .IP "$term\->destroy" 4
 .IX Item "$term->destroy"
 Destroy the terminal object (close the window, free resources
@@ -824,14 +827,19 @@ Return the window id of the terminal window.
 .IX Item "$lines_in_scrollback = $term->nsaved"
 .PD
 Return various integers describing terminal characteristics.
-.ie n .IP "$lc_ctype = $term\->locale" 4
-.el .IP "$lc_ctype = \f(CW$term\fR\->locale" 4
-.IX Item "$lc_ctype = $term->locale"
-Returns the \s-1LC_CTYPE\s0 category string used by this rxvt\-unicode.
 .ie n .IP "$x_display = $term\->display_id" 4
 .el .IP "$x_display = \f(CW$term\fR\->display_id" 4
 .IX Item "$x_display = $term->display_id"
 Return the \s-1DISPLAY\s0 used by rxvt\-unicode.
+.ie n .IP "$lc_ctype = $term\->locale" 4
+.el .IP "$lc_ctype = \f(CW$term\fR\->locale" 4
+.IX Item "$lc_ctype = $term->locale"
+Returns the \s-1LC_CTYPE\s0 category string used by this rxvt\-unicode.
+.ie n .IP "$env = $term\->env" 4
+.el .IP "$env = \f(CW$term\fR\->env" 4
+.IX Item "$env = $term->env"
+Returns a copy of the environment in effect for the terminal as a hashref
+similar to \f(CW\*(C`\e%ENV\*(C'\fR.
 .ie n .IP "$modifiermask = $term\->ModLevel3Mask" 4
 .el .IP "$modifiermask = \f(CW$term\fR\->ModLevel3Mask" 4
 .IX Item "$modifiermask = $term->ModLevel3Mask"
@@ -1010,7 +1018,7 @@ Displays the popup (which is initially hidden).
 .IX Subsection "The urxvt::timer Class"
 This class implements timer watchers/events. Time is represented as a
 fractional number of seconds since the epoch. Example:
-.Sp
+.PP
 .Vb 8
 \&   $term->{overlay} = $term->overlay (-1, 0, 8, 1, urxvt::OVERLAY_RSTYLE, 0);
 \&   $term->{timer} = urxvt::timer
@@ -1021,7 +1029,6 @@ fractional number of seconds since the epoch. Example:
 \&                          sprintf "%2d:%02d:%02d", (localtime urxvt::NOW)[2,1,0]);
 \&                    });
 .Ve
-.RS 4
 .IP "$timer = new urxvt::timer" 4
 .IX Item "$timer = new urxvt::timer"
 Create a new timer object in started state. It is scheduled to fire
@@ -1056,13 +1063,11 @@ Set the event trigger time to \f(CW$tstamp\fR and start the timer.
 .el .IP "$timer = \f(CW$timer\fR\->stop" 4
 .IX Item "$timer = $timer->stop"
 Stop the timer.
-.RE
-.RS 4
 .ie n .Sh "The ""urxvt::iow"" Class"
 .el .Sh "The \f(CWurxvt::iow\fP Class"
 .IX Subsection "The urxvt::iow Class"
 This class implements io watchers/events. Example:
-.Sp
+.PP
 .Vb 12
 \&  $term->{socket} = ...
 \&  $term->{iow} = urxvt::iow
@@ -1103,8 +1108,6 @@ Start watching for requested events on the given handle.
 .el .IP "$iow = \f(CW$iow\fR\->stop" 4
 .IX Item "$iow = $iow->stop"
 Stop watching for events on the given filehandle.
-.RE
-.RS 4
 .SH "ENVIRONMENT"
 .IX Header "ENVIRONMENT"
 .Sh "\s-1URXVT_PERL_VERBOSITY\s0"
@@ -1118,8 +1121,6 @@ numbers indicate more verbose output.
 .IX Item ">= 3 - script loading and management"
 .IP ">=10 \- all events received" 4
 .IX Item ">=10 - all events received"
-.RE
-.RS 4
 .PD
 .SH "AUTHOR"
 .IX Header "AUTHOR"
