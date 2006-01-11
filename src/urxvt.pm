@@ -86,7 +86,9 @@ Displays a digital clock using the built-in overlay.
 
 =item mark-urls
 
-Uses per-line display filtering (C<on_line_update>) to underline urls.
+Uses per-line display filtering (C<on_line_update>) to underline urls and
+make them clickable. When clicked, the program specified in the resource
+C<urlLauncher> (default C<x-www-browser>) will be started.
 
 =item block-graphics-to-ascii
 
@@ -125,7 +127,7 @@ hints on what they mean:
 =item $text
 
 Rxvt-unicodes special way of encoding text, where one "unicode" character
-always represents one screen cell. See L<row_t> for a discussion of this format.
+always represents one screen cell. See L<ROW_t> for a discussion of this format.
 
 =item $string
 
@@ -387,8 +389,6 @@ The basename of the installed binaries, usually C<urxvt>.
 
 The current terminal. This variable stores the current C<urxvt::term>
 object, whenever a callback/hook is executing.
-
-=item
 
 =back
 
@@ -784,8 +784,8 @@ sub register_package {
 =item $term = new urxvt::term $envhashref, $rxvtname, [arg...]
 
 Creates a new terminal, very similar as if you had started it with system
-C<$rxvtname, arg...>. C<$envhashref> must be a reference to a %ENV>-like
-C<hash which defines the environment of the new terminal.
+C<$rxvtname, arg...>. C<$envhashref> must be a reference to a C<%ENV>-like
+hash which defines the environment of the new terminal.
 
 Croaks (and probably outputs an error message) if the new instance
 couldn't be created.  Returns C<undef> if the new instance didn't
@@ -863,6 +863,17 @@ sub resource($$;$) {
    unshift @_, $self, $name, ($name =~ s/\s*\+\s*(\d+)$// ? $1 : 0);
    &urxvt::term::_resource
 }
+
+=item $value = $term->x_resource ($pattern)
+
+Returns the X-Resource for the given pattern, excluding the program or
+class name, i.e.  C<< $term->x_resource ("boldFont") >> should return the
+same value as used by this instance of rxvt-unicode. Returns C<undef> if no
+resource with that pattern exists.
+
+This method should only be called during the C<on_start> hook, as there is
+only one resource database per display, and later invocations might return
+the wrong resources.
 
 =item $success = $term->parse_keysym ($keysym_spec, $command_string)
 
@@ -1443,6 +1454,8 @@ sub DESTROY {
    delete $self->{term}{_destroy}{$self};
    $self->{term}->ungrab;
 }
+
+=back
 
 =head2 The C<urxvt::timer> Class
 
