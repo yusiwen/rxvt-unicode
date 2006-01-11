@@ -143,7 +143,9 @@ Displays a digital clock using the built-in overlay.
 <dt><strong><a name="item_mark_2durls">mark-urls</a></strong><br />
 </dt>
 <dd>
-Uses per-line display filtering (<code>on_line_update</code>) to underline urls.
+Uses per-line display filtering (<code>on_line_update</code>) to underline urls and
+make them clickable. When clicked, the program specified in the resource
+<code>urlLauncher</code> (default <code>x-www-browser</code>) will be started.
 </dd>
 <p></p>
 <dt><strong><a name="item_block_2dgraphics_2dto_2dascii">block-graphics-to-ascii</a></strong><br />
@@ -185,7 +187,7 @@ hints on what they mean:</p>
 </dt>
 <dd>
 Rxvt-unicodes special way of encoding text, where one ``unicode'' character
-always represents one screen cell. See <em>row_t</em> for a discussion of this format.
+always represents one screen cell. See <a href="#item_row_t">ROW_t</a> for a discussion of this format.
 </dd>
 <p></p>
 <dt><strong><a name="item__24string">$string</a></strong><br />
@@ -478,9 +480,7 @@ The basename of the installed binaries, usually <code>urxvt</code>.
 The current terminal. This variable stores the current <code>urxvt::term</code>
 object, whenever a callback/hook is executing.
 </dd>
-<p></p>
-<dt></dt>
-</dl>
+<p></p></dl>
 <p>
 </p>
 <h2><a name="functions_in_the_urxvt_package">Functions in the <code>urxvt</code> Package</a></h2>
@@ -611,11 +611,11 @@ work.</p>
 </dt>
 <dd>
 Creates a new terminal, very similar as if you had started it with system
-<code>$rxvtname, arg...</code>. <code>$envhashref</code> must be a reference to a %ENV&gt;-like
-<code></code>hash which defines the environment of the new terminal.
+<code>$rxvtname, arg...</code>. <code>$envhashref</code> must be a reference to a <code>%ENV</code>-like
+hash which defines the environment of the new terminal.
 </dd>
 <dd>
-<p>&gt;Croaks (and probably outputs an error message) if the new instance
+<p>Croaks (and probably outputs an error message) if the new instance
 couldn't be created.  Returns <code>undef</code> if the new instance didn't
 initialise perl, and the terminal object otherwise. The <code>init</code> and
 <a href="#item_start"><code>start</code></a> hooks will be called during this call.</p>
@@ -690,6 +690,20 @@ to see the actual list:</p>
   scrollWithBuffer scrollstyle secondaryScreen secondaryScroll selectstyle
   shade term_name title transparent transparent_all tripleclickwords
   utmpInhibit visualBell</pre>
+</dd>
+<p></p>
+<dt><strong><a name="item_x_resource">$value = $term-&gt;x_resource ($pattern)</a></strong><br />
+</dt>
+<dd>
+Returns the X-Resource for the given pattern, excluding the program or
+class name, i.e.  <a href="#item_x_resource"><code>$term-&gt;x_resource (&quot;boldFont&quot;)</code></a> should return the
+same value as used by this instance of rxvt-unicode. Returns <code>undef</code> if no
+resource with that pattern exists.
+</dd>
+<dd>
+<p>This method should only be called during the <code>on_start</code> hook, as there is
+only one resource database per display, and later invocations might return
+the wrong resources.</p>
 </dd>
 <p></p>
 <dt><strong><a name="item_parse_keysym">$success = $term-&gt;parse_keysym ($keysym_spec, $command_string)</a></strong><br />
