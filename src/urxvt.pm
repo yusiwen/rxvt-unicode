@@ -498,10 +498,11 @@ BEGIN {
       urxvt::warn ($msg);
    };
 
-#   delete $ENV{IFS};
-#   delete $ENV{CDPATH};
-#   delete $ENV{BASH_ENV};
-#   $ENV{PATH} = "/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/bin:/opt/sbin";
+   # %ENV is the original startup environment
+   delete $ENV{IFS};
+   delete $ENV{CDPATH};
+   delete $ENV{BASH_ENV};
+   $ENV{PATH} = "/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/opt/bin:/opt/sbin";
 }
 
 my @hook_count;
