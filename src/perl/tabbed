@@ -72,7 +72,7 @@ sub make_current {
 
    $self->configure;
 
-   for my $atom ($tab->XListProperties ($tab->parent)) {
+   for my $atom ($tab->XListProperties) {
       warn "$atom\n";
    }
 
