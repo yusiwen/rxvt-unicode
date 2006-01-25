@@ -18,7 +18,7 @@
  * Copyright (c) 1999      D J Hawkey Jr <hawkeyd@visi.com>
  *				- lastlog support
  * Copyright (c) 2004-2006 Marc Lehmann <pcg@goof.com>
- * Copyright (c) 2006 Emanuele Giaquinta <e.giaquinta@glauco.it>
+ * Copyright (c) 2006      Emanuele Giaquinta <e.giaquinta@glauco.it>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,6 +37,10 @@
 
 #include "../config.h"
 
+#include "ptytty.h"
+
+#if UTMP_SUPPORT
+
 #include <cstdio>
 
 #include <sys/types.h>
@@ -44,10 +48,6 @@
 #include <sys/fcntl.h>
 #include <unistd.h>
 #include <time.h>
-
-#include "ptytty.h"
-
-#if UTMP_SUPPORT
 
 #if HAVE_STRUCT_UTMP
 static int              write_bsd_utmp              (int utmp_pos, struct utmp *wu);
@@ -428,7 +428,7 @@ update_lastlog (const char *fname, const char *pty, const char *host)
   pwent = getpwuid (getuid ());
   if (!pwent)
     {
-      ptytty_warn ("no entry in password file, not updating lastlog.\n");
+      ptytty_warn ("no entry in password file, not updating lastlog.\n", 0);
       return;
     }
 
