@@ -75,7 +75,9 @@ sub fetch {
             $self->selection_clear;
             $self->selection ($txt);
             $self->selection_grab (urxvt::CurrentTime);
-            $self->msg ("selection fetched");
+            close $fh;
+            my $status = $? >> 8;
+            $self->msg ("selection fetched (status $status)");
          }
       });
    }
@@ -100,7 +102,7 @@ sub on_start {
    ()
 }
 
-sub on_user_command {
+sub on_keyboard_command {
    my ($self, $cmd) = @_;
 
    if ($cmd eq "selection-pastebin:remote-pastebin") {
