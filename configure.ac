@@ -94,16 +94,6 @@ dnl# solaris needs to link libnsl and socket
 AC_CHECK_FUNC(gethostbyname, [], [AC_CHECK_LIB(nsl,    gethostbyname, [LIBS="$LIBS -lnsl"])])
 AC_CHECK_FUNC(socket,        [], [AC_CHECK_LIB(socket, socket,        [LIBS="$LIBS -lsocket"])])
 
-dnl# more solaris
-AC_CHECK_FUNC(sched_yield,   [], [AC_CHECK_LIB(rt,     sched_yield,   [LIBS="$LIBS -lrt"])])
-
-dnl# sched_yield to improve terminal efficiency
-AC_MSG_CHECKING(for sched_yield support)
-AC_TRY_LINK([#include <sched.h>],[sched_yield ()],
-            [AC_MSG_RESULT(yes)
-             AC_DEFINE(HAVE_SCHED_YIELD, 1, Define if you have sched-h and sched_yield)],
-            [AC_MSG_RESULT(no)])
-
 dnl AC_ENABLE_SHARED(no)dnl#	libtool
 dnl AC_ENABLE_STATIC(yes)dnl#	libtool
 dnl AC_PROG_LIBTOOL()dnl#		libtool
@@ -1004,7 +994,7 @@ if test x$support_xim = xyes -a x$rxvt_cv_func_xlocale = xno; then
   echo ".----------------------------------------------------------------."
 fi
 
-echo "  *** Optionally check src/feature.h for further options ***"
+echo "*** Optionally check src/feature.h for further, rarely used options ***"
 echo
 
 echo ".----------------------------------------------------------------."
