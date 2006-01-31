@@ -409,7 +409,7 @@ rxvt_usage (int type)
         for (col = 1, i = 0; i < optList_size; i++)
           if (optList[i].desc != NULL)
             {
-              int len = 0;
+              int             len = 0;
 
               if (!optList_isBool (i))
                 {
@@ -545,6 +545,8 @@ rxvt_term::get_options (int argc, const char *const *argv)
               if (optList[entry].doff != -1)
                 rs[optList[entry].doff] = flag == resval_on && argv[i+1]
                                           ? argv[++i] : resval_undef;
+
+              if (optList[entry].doff == Rs_color + Color_tint) printf ("doff %d is %s\n",optList[entry].doff,rs[optList[entry].doff]);//D
             }
           else
             {		/* boolean value */
