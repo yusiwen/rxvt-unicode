@@ -276,12 +276,6 @@ AC_ARG_ENABLE(plain-scroll,
     support_scroll_plain=$enableval
   fi])
 
-dnl AC_ARG_ENABLE(half-shadow,
-dnl   [  --enable-half-shadow    use half width/height shadow on rxvt scrollbar],
-dnl   [if test x$enableval = xyes; then
-dnl     AC_DEFINE(HALFSHADOW, 1, Define if you want the depth of scrollbars and menus to be less)
-dnl   fi])
-
 AC_ARG_WITH(codesets,
   [  --with-codesets=NAME,.. compile in additional codesets (jp,jp_ext,kr,zh,zh_ext,all)],
   [codesets="$withval"])
@@ -994,17 +988,6 @@ if test x$support_xim = xyes -a x$rxvt_cv_func_xlocale = xno; then
   echo ".----------------------------------------------------------------."
 fi
 
-echo "  *** Optionally check src/feature.h for further options ***"
-echo
-
-echo ".----------------------------------------------------------------."
-echo ". NOTE: some features are disabled by default, try               ."
-echo ". configure --help to get an idea of the optional features,      ."
-echo ". or read ./README.configure                                     ."
-echo ".                                                                ."
-echo ". The script ./reconf gives a reasonable baseline, try it if     ."
-echo ". you do not want to read documentation and still want some      ."
-echo ". useful features.                                               ."
-echo ".----------------------------------------------------------------."
+echo "*** Optionally check src/feature.h for further, rarely used options ***"
 echo
 
