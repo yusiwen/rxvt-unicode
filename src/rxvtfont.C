@@ -1302,7 +1302,7 @@ rxvt_font_xft::draw (rxvt_drawable &d, int x, int y,
    * Maybe make buffering into a resource flag? Compile time option doesn't seems like a
    * good idea from the perspective of packaging for wide variety of user configs.
    */
-  bool buffered = bg >= 0;
+  bool buffered = bg >= Color_transparent;
 #ifdef FORCE_UNBUFFERED_XFT
   buffered = false;
 #endif
@@ -1352,12 +1352,12 @@ rxvt_font_xft::draw (rxvt_drawable &d, int x, int y,
             {
               Picture dst = 0;
 
-              if (bg >= 0 && term->pix_colors[bg].c.color.alpha < 0xff00)
+              if (bg >= 0 && term->pix_colors[bg].is_opaque ())
                 dst = XftDrawPicture (d2);
 
-              if (bg < 0 || dst != 0)
+              if (dst)
                 {
-                  int src_x = x, src_y = y ;
+                  int src_x = x, src_y = y;
 
                   if (term->bgPixmap.is_parentOrigin ())
                     {
@@ -1390,8 +1390,11 @@ rxvt_font_xft::draw (rxvt_drawable &d, int x, int y,
                       XChangeGC (disp, gc, GCFillStyle, &gcv);
                     }
 
-                  Picture solid_color_pict = XftDrawSrcPicture (d2, &term->pix_colors[bg].c);
-                  XRenderComposite (disp, PictOpOver, solid_color_pict, None, dst, 0, 0, 0, 0, 0, 0, w, h);
+                  if (bg >= 0)
+                    {
+                      Picture solid_color_pict = XftDrawSrcPicture (d2, &term->pix_colors[bg].c);
+                      XRenderComposite (disp, PictOpOver, solid_color_pict, None, dst, 0, 0, 0, 0, 0, 0, w, h);
+                    }
 
                   back_rendered = true;
                 }
@@ -1399,7 +1402,7 @@ rxvt_font_xft::draw (rxvt_drawable &d, int x, int y,
 #endif
 
           if (!back_rendered)
-            XftDrawRect (d2, &term->pix_colors[bg].c, 0, 0, w, h);
+            XftDrawRect (d2, &term->pix_colors[bg < 0 ? Color_bg : bg].c, 0, 0, w, h);
 
           XftDrawGlyphSpec (d2, &term->pix_colors[fg].c, f, enc, ep - enc);
           XCopyArea (disp, d2, d, gc, 0, 0, w, h, x, y);
