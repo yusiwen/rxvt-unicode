@@ -11,7 +11,6 @@ configure.ac
 config.sub
 config.guess
 aclocal.m4
-ptytty.m4
 autogen.sh
 config.h.in
 Makefile.in
@@ -85,13 +84,14 @@ src/scrollbar.h
 src/version.h
 src/xdefaults.C
 
-src/libptytty.h
-src/ptytty_conf.h
-src/ptytty.h
-src/ptytty.C
-src/proxy.C
-src/logging.C
-src/fdpass.C
+libptytty/ptytty.m4
+libptytty/src/libptytty.h
+libptytty/src/ptytty_conf.h
+libptytty/src/ptytty.h
+libptytty/src/ptytty.C
+libptytty/src/proxy.C
+libptytty/src/logging.C
+libptytty/src/fdpass.C
 
 src/gentables
 src/gencompose
