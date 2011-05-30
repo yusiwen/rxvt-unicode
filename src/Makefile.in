@@ -38,7 +38,7 @@ COMMON = \
 	screen.o scrollbar.o scrollbar-next.o scrollbar-rxvt.o \
 	scrollbar-xterm.o scrollbar-plain.o xdefaults.o encoding.o \
 	rxvttoolkit.o rxvtutil.o keyboard.o \
-	ev_cpp.o ptytty_wrapper.o @PERL_O@
+	ev_cpp.o fdpass_wrapper.o ptytty_wrapper.o @PERL_O@
 
 COMMON_DAEMON = rxvtdaemon.o
 
@@ -67,8 +67,8 @@ rxvt: rxvt.o $(COMMON)
 rxvtd: rxvtd.o $(COMMON) $(COMMON_DAEMON)
 	$(LINK) -o $@ rxvtd.o $(COMMON) $(COMMON_DAEMON) $(LIBS) $(XLIB) $(PERLLIB)
 
-rxvtc: rxvtc.o $(COMMON_DAEMON) fdpass.o
-	$(LINK) -o $@ rxvtc.o $(COMMON_DAEMON) fdpass.o $(LIBS)
+rxvtc: rxvtc.o $(COMMON_DAEMON) fdpass_wrapper.o
+	$(LINK) -o $@ rxvtc.o $(COMMON_DAEMON) fdpass_wrapper.o $(LIBS)
 
 #-------------------------------------------------------------------------
 
