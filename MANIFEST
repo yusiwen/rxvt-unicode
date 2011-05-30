@@ -47,6 +47,7 @@ src/command.C
 src/command.h
 src/encoding.C
 src/encoding.h
+src/fdpass_wrapper.C
 src/feature.h
 src/hookinc.h
 src/init.C
@@ -58,6 +59,7 @@ src/keyboard.h
 src/main.C
 src/misc.C
 src/optinc.h
+src/ptytty_wrapper.C
 src/rxvtutil.C
 src/rxvtutil.h
 src/rxvttoolkit.C
