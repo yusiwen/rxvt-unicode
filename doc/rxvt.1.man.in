@@ -124,15 +124,7 @@
 .\" ========================================================================
 .\"
 .IX Title "@@RXVT_NAME@@ 1"
-<<<<<<< rxvt.1.man.in
-<<<<<<< rxvt.1.man.in
-.TH @@RXVT_NAME@@ 1 "2011-06-09" "@@RXVT_VERSION@@" "RXVT-UNICODE"
-=======
-.TH @@RXVT_NAME@@ 1 "2010-12-13" "@@RXVT_VERSION@@" "RXVT-UNICODE"
->>>>>>> 1.95
-=======
-.TH @@RXVT_NAME@@ 1 "2011-05-02" "@@RXVT_VERSION@@" "RXVT-UNICODE"
->>>>>>> 1.97
+.TH @@RXVT_NAME@@ 1 "2011-06-22" "@@RXVT_VERSION@@" "RXVT-UNICODE"
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -1159,8 +1151,6 @@ performed in an exact manner; however, the closest match is assured.
 \&\fIstring\fR may contain escape values (\f(CW\*(C`\en\*(C'\fR: newline, \f(CW\*(C`\e000\*(C'\fR: octal
 number), see \s-1RESOURCES\s0 in \f(CW\*(C`man 7 X\*(C'\fR for further details.
 .Sp
-<<<<<<< rxvt.1.man.in
-<<<<<<< rxvt.1.man.in
 You can define a range of keysyms in one shot by providing a \fIstring\fR
 with pattern \fBlist/PREFIX/MIDDLE/SUFFIX\fR, where the delimiter `/'
 should be a character not used by the strings.
@@ -1179,28 +1169,6 @@ The above line is equivalent to the following three lines:
 \&  URxvt.keysym.Meta\-Control\-0x63:    \e033<c>
 .Ve
 .Sp
-=======
-You can define a range of keysyms in one shot by providing a \fIstring\fR
-with pattern \fBlist/PREFIX/MIDDLE/SUFFIX\fR, where the delimiter `/'
-should be a character not used by the strings.
-.Sp
-Its usage can be demonstrated by an example:
-.Sp
-.Vb 1
-\&  URxvt.keysym.M\-C\-0x61:    list|\e033<M\-C\-|abc|>
-.Ve
-.Sp
-The above line is equivalent to the following three lines:
-.Sp
-.Vb 3
-\&  URxvt.keysym.Meta\-Control\-0x61:    \e033<M\-C\-a>
-\&  URxvt.keysym.Meta\-Control\-0x62:    \e033<M\-C\-b>
-\&  URxvt.keysym.Meta\-Control\-0x63:    \e033<M\-C\-c>
-.Ve
-.Sp
->>>>>>> 1.95
-=======
->>>>>>> 1.97
 If \fIstring\fR takes the form of \f(CW\*(C`command:STRING\*(C'\fR, the specified \fB\s-1STRING\s0\fR
 is interpreted and executed as @@RXVT_NAME@@'s control sequence. For
 example the following means "change the current locale to \f(CW\*(C`zh_CN.GBK\*(C'\fR
