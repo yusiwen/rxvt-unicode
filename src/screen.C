@@ -51,8 +51,10 @@ fill_text (text_t *start, text_t value, int len)
 #define CLEAR_SELECTION()                                              \
     selection.beg.row = selection.beg.col                              \
         = selection.end.row = selection.end.col = 0
-#define CLEAR_SELECTION_MARK()                                         \
-    selection.mark.row = selection.mark.col = 0
+#define CLEAR_ALL_SELECTION()                                          \
+    selection.beg.row = selection.beg.col                              \
+        = selection.mark.row = selection.mark.col                      \
+        = selection.end.row = selection.end.col = 0
 
 #define ROW_AND_COL_IS_AFTER(A, B, C, D)                               \
     (((A) > (C)) || (((A) == (C)) && ((B) > (D))))
@@ -405,8 +407,7 @@ rxvt_term::scr_reset ()
   for (int col = ncol; col--; )
     tabs [col] = col % TABSIZE == 0;
 
-  CLEAR_SELECTION ();
-  CLEAR_SELECTION_MARK ();
+  CLEAR_ALL_SELECTION ();
 
   prev_nrow = nrow;
   prev_ncol = ncol;
@@ -713,9 +714,8 @@ rxvt_term::scr_scroll_text (int row1, int row2, int count) NOTHROW
               || (selection.end.row - count < row1 && selection.end.row >= row1)
               || (selection.end.row - count > row2 && selection.end.row <= row2))
             {
-              CLEAR_SELECTION ();
-              if (!IN_RANGE_EXC (selection.mark.row, top_row, nrow))
-                CLEAR_SELECTION_MARK ();
+              CLEAR_ALL_SELECTION ();
+              selection.op = SELECTION_CLEAR;
             }
           else if (selection.end.row >= row1 && selection.end.row <= row2)
             {
@@ -2700,6 +2700,7 @@ rxvt_term::selection_check (int check_more) NOTHROW
   pos.row = pos.col = 0;
 
   if (!IN_RANGE_EXC (selection.beg.row, top_row, nrow)
+      || !IN_RANGE_EXC (selection.mark.row, top_row, nrow)
       || !IN_RANGE_EXC (selection.end.row, top_row, nrow)
       || (check_more == 1
           && current_screen == selection.screen
@@ -2710,10 +2711,7 @@ rxvt_term::selection_check (int check_more) NOTHROW
           && ROWCOL_IS_AFTER (selection.end, pos))
       || (check_more == 3
           && ROWCOL_IS_AFTER (selection.end, pos)))
-    CLEAR_SELECTION ();
-
-  if (!IN_RANGE_EXC (selection.mark.row, top_row, nrow))
-    CLEAR_SELECTION_MARK ();
+    CLEAR_ALL_SELECTION ();
 }
 
 /* ------------------------------------------------------------------------- */
