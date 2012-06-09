@@ -358,7 +358,8 @@ rxvt_img::brightness (int32_t r, int32_t g, int32_t b, int32_t a)
   Display *dpy = s->display->dpy;
   Picture dst = XRenderCreatePicture (dpy, pm, format, 0, 0);
 
-  while (r | g | b | a)
+  // loop should not be needed for brightness, as only -1..1 makes sense
+  //while (r | g | b | a)
     {
       unsigned short xr, xg, xb, xa;
       XRenderColor mask_c;
@@ -370,7 +371,7 @@ rxvt_img::brightness (int32_t r, int32_t g, int32_t b, int32_t a)
         {
           XRenderColor mask_w = { 65535, 65535, 65535, 65535 };
           XRenderFillRectangle (dpy, PictOpDifference, dst, &mask_w, 0, 0, w, h);
-          mask_c.red   = -mask_c.red;
+          mask_c.red   = -mask_c.red; //TODO: verify that doing clamp, assign, and negation does the right thing
           mask_c.green = -mask_c.green;
           mask_c.blue  = -mask_c.blue;
           mask_c.alpha = -mask_c.alpha;
