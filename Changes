@@ -57,6 +57,8 @@ TODO: perl one-liner
         - upgrade to GPLv3 (see COPYING).
         - Fix height and position of the stippled area in next scrollbar (patch
           by Thomas Otto).
+        - fix off-by-one bug causing the iso14755 window not to jump out of the
+          way properly.
 
 9.20 Sat Apr 26 16:22:27 CEST 2014
         - (libptytty) fix bug that prevented urxvtd from writing utmp

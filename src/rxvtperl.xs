@@ -497,6 +497,11 @@ rxvt_perl_interp::parse_resource (rxvt_term *term, const char *name, bool arg, b
 static void
 _keysym_resource_push (rxvt_term *term, const char *k, const char *v)
 {
+  unsigned int state;
+
+  if (term->parse_keysym (k, state) == -1)
+    return;
+
   dSP;
   XPUSHs (sv_2mortal (newSVpv (v, 0)));
   PUTBACK;
@@ -1304,7 +1309,7 @@ rxvt_term::XKeysymToKeycode (int sym)
 int
 rxvt_term::XKeycodeToKeysym (int code, int index)
 	CODE:
-        RETVAL = XKeycodeToKeysym (THIS->dpy, code, index);
+        RETVAL = rxvt_XKeycodeToKeysym (THIS->dpy, code, index);
 	OUTPUT: RETVAL
 
 int
@@ -1863,13 +1868,6 @@ rxvt_term::bind_action (char *keysym, char *str)
         THIS->keyboard->register_done ();
 	OUTPUT:
         RETVAL
-
-void
-rxvt_term::register_command (int keysym, unsigned int state, SV *str)
-        CODE:
-        wchar_t *wstr = sv2wcs (str);
-        THIS->keyboard->register_action (keysym, state, wstr);
-        free (wstr);
 
 void
 rxvt_term::screen_cur (...)

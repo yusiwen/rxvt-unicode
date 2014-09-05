@@ -178,6 +178,8 @@ void           * rxvt_malloc                      (size_t size);
 void           * rxvt_calloc                      (size_t number, size_t size);
 void           * rxvt_realloc                     (void *ptr, size_t size);
 
+KeySym rxvt_XKeycodeToKeysym (Display *dpy, KeyCode keycode, int index);
+
 /////////////////////////////////////////////////////////////////////////////
 
 // temporarily replace the process environment
@@ -1572,6 +1574,7 @@ struct rxvt_term : zero_initialized, rxvt_vars, rxvt_screen
   // xdefaults.C
   void rxvt_usage (int type);
   const char **get_options (int argc, const char *const *argv);
+  int parse_keysym (const char *str, unsigned int &state);
   int bind_action (const char *str, const char *arg);
   const char *x_resource (const char *name);
   void extract_resources ();
