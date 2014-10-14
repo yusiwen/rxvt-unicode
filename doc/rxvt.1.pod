@@ -1121,6 +1121,21 @@ string C<echo rm -rf /> followed by a newline:
 
 This could in theory be used to completely redefine your keymap.
 
+In addition, for actions of this type, you can define a range of
+keysyms in one shot by loading the C<keysym-list> perl extension and
+providing an I<action> with pattern B<list/PREFIX/MIDDLE/SUFFIX>, where
+the delimiter `/' should be a character not used by the strings.
+
+Its usage can be demonstrated by an example:
+
+  URxvt.keysym.M-C-0x61:    list|\033<|abc|>
+
+The above line is equivalent to the following three lines:
+
+  URxvt.keysym.Meta-Control-0x61:    string:\033<a>
+  URxvt.keysym.Meta-Control-0x62:    string:\033<b>
+  URxvt.keysym.Meta-Control-0x63:    string:\033<c>
+
 =item command:STRING
 
 If I<action> takes the form of C<command:STRING>, the specified B<STRING>
@@ -1194,11 +1209,11 @@ this:
 
 =item EXTENSION:STRING
 
-An action of this form passes the B<STRING> to the @@RXVT_NAME@@perl(3)
-extension of the same name. The extension will be loaded automatically if
-necessary.
+An action of this form invokes the action B<STRING>, if any, provided
+by the @@RXVT_NAME@@perl(3) extension B<EXTENSION>. The extension will
+be loaded automatically if necessary.
 
-Not all extensions define key actions, but popular extensions that do
+Not all extensions define actions, but popular extensions that do
 include the I<selection> and I<matcher> extensions (documented in their
 own manpages, @@RXVT_NAME@@-selection(1) and @@RXVT_NAME@@-matcher(1),
 respectively).
@@ -1211,8 +1226,8 @@ keyboards:
 
 =item perl:STRING *DEPRECATED*
 
-This is a deprecated way of passing key mappings to perl extensions. It is
-still supported, but should not be used anymore.
+This is a deprecated way of invoking commands provided by perl
+extensions. It is still supported, but should not be used anymore.
 
 =back
 
@@ -1230,10 +1245,12 @@ example, C<default,-selection> will use all the default extensions except
 C<selection>.
 
 The default set includes the C<selection>, C<option-popup>,
-C<selection-popup> and C<readline> extensions, any extensions that define
-keybindings via C<BINDING> meta comments, extensions loaded because
-their resources/commandline switches were used, and extensions which are
-mentioned in B<keysym> resources.
+C<selection-popup> and C<readline> extensions, any extensions that
+define keybindings via C<BINDING> meta comments, and extensions which
+are mentioned in B<keysym> resources.
+
+Any extension such that a corresponding resource is given on the
+command line is automatically appended to B<perl-ext>.
 
 Each extension is looked up in the library directories, loaded if
 necessary, and bound to the current terminal instance. When the library

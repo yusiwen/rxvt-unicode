@@ -45,8 +45,15 @@ Or by adding them to the resource for extensions loaded by default:
 
   URxvt.perl-ext-common: default,selection-autotransform
 
-Extensions that add command line parameters or resources on their own are
-loaded automatically when used.
+Extensions may add additional resources and C<actions>, i.e., methods
+which can be bound to a key and invoked by the user. An extension can
+define the resources it support and also default bindings for one or
+more actions it provides using so called META comments, described
+below. Similarly to builtin resources, extension resources can also be
+specified on the command line as long options (with C<.> replaced by
+C<->), in which case the corresponding extension is loaded
+automatically. For this to work the extension B<must> define META
+comments for its resources.
 
 =head1 API DOCUMENTATION
 
@@ -107,6 +114,29 @@ C<urxvt::term> class on this object.
 
 Additional methods only supported for extension objects are described in
 the C<urxvt::extension> section below.
+
+=head2 META comments
+
+rxvt-unicode recognizes special comments in extensions that define
+different types of metadata:
+
+=over 4
+
+=item #:META:RESOURCE:name:type:desc
+
+The RESOURCE comment defines a resource used by the extension, where
+C<name> is the resource name, C<type> is the resource type, C<boolean>
+or C<string>, and C<desc> is the resource description.
+
+=item #:META:BINDING:sym:action
+
+The BINDING comment defines a default binding for an action provided
+by the extension, where C<sym> is the key combination that triggers
+the action, whose format is defined in the description of the
+B<keysym> resource in the urxvt(1) manpage, and C<action> is the name
+of the action method.
+
+=back
 
 =head2 Hooks
 
@@ -282,6 +312,14 @@ code is run after this hook, and takes precedence.
 =item on_refresh_end $term
 
 Called just after the screen gets redrawn. See C<on_refresh_begin>.
+
+=item on_action $term, $string
+
+Called whenever an action is invoked for the corresponding extension
+(e.g. via a C<extension:string> builtin action bound to a key, see
+description of the B<keysym> resource in the urxvt(1) manpage). The
+event is simply the action string. Note that an action event is always
+associated to a single extension.
 
 =item on_user_command $term, $string *DEPRECATED*
 
@@ -557,19 +595,21 @@ no warnings 'utf8';
 sub parse_resource {
    my ($term, $name, $isarg, $longopt, $flag, $value) = @_;
 
-   $name =~ y/-/./ if $isarg;
-
    $term->scan_extensions;
 
    my $r = $term->{meta}{resource};
    keys %$r; # reset iterator
-   while (my ($pattern, $v) = each %$r) {
-      if (
-         $pattern =~ /\.$/
-         ? $pattern eq substr $name, 0, length $pattern
-         : $pattern eq $name
-      ) {
-         $name = "$urxvt::RESCLASS.$name";
+   while (my ($k, $v) = each %$r) {
+      my $pattern = $k;
+      $pattern =~ y/./-/ if $isarg;
+      my $prefix = $name;
+      my $suffix;
+      if ($pattern =~ /\-$/) {
+         $prefix = substr $name, 0, length $pattern;
+         $suffix = substr $name, length $pattern;
+      }
+      if ($pattern eq $prefix) {
+         $name = "$urxvt::RESCLASS.$k$suffix";
 
          push @{ $term->{perl_ext_3} }, $v->[0];
 
@@ -677,22 +717,21 @@ sub invoke {
       }
 
       for (
-         grep $_, map { split /,/, $TERM->resource ("perl_ext_$_") } 1, 2
+         (grep $_, map { split /,/, $TERM->resource ("perl_ext_$_") } 1, 2),
+         @{ delete $TERM->{perl_ext_3} }
       ) {
          if ($_ eq "default") {
 
             $ext_arg{$_} = []
                for
                   qw(selection option-popup selection-popup readline),
-                  map $_->[0], values %{ $TERM->{meta}{binding} },
-                  @{ delete $TERM->{perl_ext_3} };
+                  map $_->[0], values %{ $TERM->{meta}{binding} };
 
             for ($TERM->_keysym_resources) {
                next if /^(?:string|command|builtin|builtin-string|perl)/;
                next unless /^([A-Za-z0-9_\-]+):/;
 
                my $ext = $1;
-               $ext =~ y/-/_/;
 
                $ext_arg{$ext} = [];
             }
@@ -1274,15 +1313,15 @@ class name, i.e.  C<< $term->x_resource ("boldFont") >> should return the
 same value as used by this instance of rxvt-unicode. Returns C<undef> if no
 resource with that pattern exists.
 
-Extensions that define extra resource or command line arguments also need
-to call this method to access their values.
+Extensions that define extra resources also need to call this method
+to access their values.
 
 If the method is called on an extension object (basically, from an
 extension), then the special prefix C<%.> will be replaced by the name of
 the extension and a dot, and the lone string C<%> will be replaced by the
 extension name itself. This makes it possible to code extensions so you
-can rename them and get a new set of commandline switches and resources
-without having to change the actual code.
+can rename them and get a new set of resources without having to change
+the actual code.
 
 This method should only be called during the C<on_start> hook, as there is
 only one resource database per display, and later invocations might return
