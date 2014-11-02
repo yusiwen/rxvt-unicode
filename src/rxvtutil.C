@@ -20,6 +20,14 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *----------------------------------------------------------------------*/
 
+// we include emman.c here to avoid relying on a C compiler, or
+// on the c++ compiler not complaining about .c, which is unlikely,
+// but...
+// This must be the first include, because the _GNU_SOURCE and
+// _XOPEN_SOURCE macros, used by emman.c, must be defined before
+// inclusion of any header.
+#include "emman.c"
+
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
@@ -41,6 +49,19 @@ zero_initialized::operator delete (void *p, size_t s)
   free (p);
 }
 
+void *
+operator new (size_t s) throw (std::bad_alloc)
+{
+  // TODO: use rxvt_malloc
+  return malloc (s);
+}
+
+void
+operator delete (void *p) throw ()
+{
+  free (p);
+}
+
 static void *temp_buf;
 static uint32_t temp_len;
 
@@ -56,9 +77,4 @@ rxvt_temp_buf (int len)
 
   return temp_buf;
 }
-
-// we include emman.c here to avoid relying on a C compiler, or
-// on the c++ compiler not complaining about .c, which is unlikely,
-// but...
-#include "emman.c"
 
