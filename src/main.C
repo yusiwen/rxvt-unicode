@@ -13,7 +13,7 @@
  * Copyright (c) 1997,1998 Oezguer Kesim <kesim@math.fu-berlin.de>
  * Copyright (c) 1998-2001 Geoff Wing <gcw@pobox.com>
  *                              - extensive modifications
- * Copyright (c) 2003-2010 Marc Lehmann <schmorp@schmorp.de>
+ * Copyright (c) 2003-2014 Marc Lehmann <schmorp@schmorp.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -256,7 +256,8 @@ rxvt_term::~rxvt_term ()
           {
             pix_colors_focused   [i].free (this);
 #if OFF_FOCUS_FADING
-            pix_colors_unfocused [i].free (this);
+            if (rs[Rs_fade])
+              pix_colors_unfocused [i].free (this);
 #endif
           }
 
@@ -293,6 +294,8 @@ rxvt_term::~rxvt_term ()
 #ifndef NO_RESOURCES
   XrmDestroyDatabase (option_db);
 #endif
+
+  SET_R ((rxvt_term *)0);
 }
 
 // child has exited, usually destroys
@@ -390,97 +393,97 @@ rxvt_emergency_cleanup ()
 static void ecb_cold
 print_x_error (Display *dpy, XErrorEvent *event)
 {
-    char buffer[BUFSIZ];
-    char mesg[BUFSIZ];
-    char number[32];
+  char buffer[BUFSIZ];
+  char mesg[BUFSIZ];
+  char number[32];
 
-    rxvt_warn ("An X Error occurred, trying to continue after report.\n");
+  rxvt_warn ("An X Error occurred, trying to continue after report.\n");
 
-    XGetErrorDatabaseText (dpy, "XlibMessage", "ErrorSerial", "Error Serial #%d", mesg, BUFSIZ);
-    snprintf (buffer, BUFSIZ, "+ %s\n", mesg); rxvt_warn (buffer, event->serial);
+  XGetErrorDatabaseText (dpy, "XlibMessage", "ErrorSerial", "Error Serial #%d", mesg, BUFSIZ);
+  snprintf (buffer, BUFSIZ, "+ %s\n", mesg); rxvt_warn (buffer, event->serial);
 
-    XGetErrorText (dpy, event->error_code, buffer, BUFSIZ);
-    XGetErrorDatabaseText (dpy, "XlibMessage", "XError", "X Error", mesg, BUFSIZ);
-    rxvt_warn ("+ %s: %s\n", mesg, buffer);
+  XGetErrorText (dpy, event->error_code, buffer, BUFSIZ);
+  XGetErrorDatabaseText (dpy, "XlibMessage", "XError", "X Error", mesg, BUFSIZ);
+  rxvt_warn ("+ %s: %s\n", mesg, buffer);
 
-    XGetErrorDatabaseText (dpy, "XlibMessage", "MajorCode", "Request Major code %d", mesg, BUFSIZ);
-    snprintf (buffer, BUFSIZ, "+ %s\n", mesg); rxvt_warn (buffer, event->request_code);
+  XGetErrorDatabaseText (dpy, "XlibMessage", "MajorCode", "Request Major code %d", mesg, BUFSIZ);
+  snprintf (buffer, BUFSIZ, "+ %s\n", mesg); rxvt_warn (buffer, event->request_code);
 
-    if (event->request_code >= 128)
-      {
+  if (event->request_code >= 128)
+    {
 #if 0
-        /* XListExtensions and probably query extensions hangs when there are multiple queues errors */
-        int nexts;
-        char **exts = XListExtensions (dpy, &nexts);
+      /* XListExtensions and probably query extensions hangs when there are multiple queues errors */
+      int nexts;
+      char **exts = XListExtensions (dpy, &nexts);
 
-        while (nexts)
-          {
-            char *extname = exts [nexts - 1];
-            int major, first_event, first_error;
+      while (nexts)
+        {
+          char *extname = exts [nexts - 1];
+          int major, first_event, first_error;
 
-            if (XQueryExtension (dpy, extname, &major, &first_event, &first_error) && major == event->request_code)
-              {
-                XGetErrorDatabaseText (dpy, "XlibMessage", "MinorCode", "Request Minor code %d", mesg, BUFSIZ);
-                rxvt_warn ("+ (which is extension %s minor code %d)\n", extname, event->minor_code);
+          if (XQueryExtension (dpy, extname, &major, &first_event, &first_error) && major == event->request_code)
+            {
+              XGetErrorDatabaseText (dpy, "XlibMessage", "MinorCode", "Request Minor code %d", mesg, BUFSIZ);
+              rxvt_warn ("+ (which is extension %s minor code %d)\n", extname, event->minor_code);
 
-                snprintf (buffer, BUFSIZ, "%s.%d", extname, event->minor_code);
-                XGetErrorDatabaseText (dpy, "XRequest", buffer, "an unregistered minor code", buffer, BUFSIZ);
-                rxvt_warn ("+ (which is %s)\n", buffer);
+              snprintf (buffer, BUFSIZ, "%s.%d", extname, event->minor_code);
+              XGetErrorDatabaseText (dpy, "XRequest", buffer, "an unregistered minor code", buffer, BUFSIZ);
+              rxvt_warn ("+ (which is %s)\n", buffer);
 
-                break;
-              }
+              break;
+            }
 
-            printf ("nextss %d %s\n", nexts, extname);//D
-            --nexts;
-            ++exts;
-          }
+          printf ("nextss %d %s\n", nexts, extname);//D
+          --nexts;
+          ++exts;
+        }
 #else
-        int nexts = 0;
-        char **exts = 0;
+      int nexts = 0;
+      char **exts = 0;
 #endif
 
-        if (!nexts)
-          {
-            rxvt_warn ("+ (which is an unknown extension)\n", buffer);
+      if (!nexts)
+        {
+          rxvt_warn ("+ (which is an unknown extension)\n", buffer);
 
-            XGetErrorDatabaseText (dpy, "XlibMessage", "MinorCode", "Request Minor code %d", mesg, BUFSIZ);
-            snprintf (buffer, BUFSIZ, "+ %s\n", mesg); rxvt_warn (buffer, event->minor_code);
+          XGetErrorDatabaseText (dpy, "XlibMessage", "MinorCode", "Request Minor code %d", mesg, BUFSIZ);
+          snprintf (buffer, BUFSIZ, "+ %s\n", mesg); rxvt_warn (buffer, event->minor_code);
 
 #if 0
-            sprintf (number, "RENDER.%d", event->minor_code);
-            XGetErrorDatabaseText (dpy, "XRequest", number, "", buffer, BUFSIZ);
-            rxvt_warn ("+ (which is %s)\n", buffer);
+          sprintf (number, "RENDER.%d", event->minor_code);
+          XGetErrorDatabaseText (dpy, "XRequest", number, "", buffer, BUFSIZ);
+          rxvt_warn ("+ (which is %s)\n", buffer);
 #endif
-          }
+        }
 
-        XFreeExtensionList (exts);
-      }
-    else
-      {
-        sprintf (number, "%d", event->request_code);
-        XGetErrorDatabaseText (dpy, "XRequest", number, "", buffer, BUFSIZ);
-        rxvt_warn ("+ (which is %s)\n", buffer);
-      }
+      XFreeExtensionList (exts);
+    }
+  else
+    {
+      sprintf (number, "%d", event->request_code);
+      XGetErrorDatabaseText (dpy, "XRequest", number, "", buffer, BUFSIZ);
+      rxvt_warn ("+ (which is %s)\n", buffer);
+    }
 
-    if (event->error_code == BadWindow
-        || event->error_code == BadPixmap
-        || event->error_code == BadCursor
-        || event->error_code == BadFont
-        || event->error_code == BadDrawable
-        || event->error_code == BadColor
-        || event->error_code == BadGC
-        || event->error_code == BadIDChoice
-        || event->error_code == BadValue
-        || event->error_code == BadAtom)
-      {
-        if (event->error_code == BadValue)
-          XGetErrorDatabaseText (dpy, "XlibMessage", "Value", "Value 0x%x", mesg, BUFSIZ);
-        else if (event->error_code == BadAtom)
-          XGetErrorDatabaseText (dpy, "XlibMessage", "AtomID", "AtomID 0x%x", mesg, BUFSIZ);
-        else
-          XGetErrorDatabaseText (dpy, "XlibMessage", "ResourceID", "ResourceID 0x%x", mesg, BUFSIZ);
+  if (event->error_code == BadWindow
+      || event->error_code == BadPixmap
+      || event->error_code == BadCursor
+      || event->error_code == BadFont
+      || event->error_code == BadDrawable
+      || event->error_code == BadColor
+      || event->error_code == BadGC
+      || event->error_code == BadIDChoice
+      || event->error_code == BadValue
+      || event->error_code == BadAtom)
+    {
+      if (event->error_code == BadValue)
+        XGetErrorDatabaseText (dpy, "XlibMessage", "Value", "Value 0x%x", mesg, BUFSIZ);
+      else if (event->error_code == BadAtom)
+        XGetErrorDatabaseText (dpy, "XlibMessage", "AtomID", "AtomID 0x%x", mesg, BUFSIZ);
+      else
+        XGetErrorDatabaseText (dpy, "XlibMessage", "ResourceID", "ResourceID 0x%x", mesg, BUFSIZ);
 
-        snprintf (buffer, BUFSIZ, "+ %s\n", mesg); rxvt_warn (buffer, event->resourceid);
+      snprintf (buffer, BUFSIZ, "+ %s\n", mesg); rxvt_warn (buffer, event->resourceid);
     }
 }
 #endif
@@ -488,7 +491,7 @@ print_x_error (Display *dpy, XErrorEvent *event)
 int ecb_cold
 rxvt_xerror_handler (Display *display, XErrorEvent *event)
 {
-  if (GET_R->allowedxerror == -1)
+  if (GET_R && GET_R->allowedxerror == -1)
     GET_R->allowedxerror = event->error_code;
   else
     {
@@ -941,8 +944,6 @@ void
 rxvt_term::set_window_color (int idx, const char *color)
 {
 #ifdef XTERM_COLOR_CHANGE
-  rxvt_color xcol;
-
   if (color == NULL || *color == '\0')
     return;
 
@@ -958,38 +959,32 @@ rxvt_term::set_window_color (int idx, const char *color)
       if (i >= 8 && i <= 15)
         {
           /* bright colors */
-          pix_colors_focused[idx] = pix_colors_focused[minBrightCOLOR + i - 8];
+          alias_color (idx, minBrightCOLOR + i - 8);
           goto done;
         }
 
       if (i >= 0 && i <= 7)
         {
           /* normal colors */
-          pix_colors_focused[idx] = pix_colors_focused[minCOLOR + i];
+          alias_color (idx, minCOLOR + i);
           goto done;
         }
     }
 
-  set_color (xcol, color);
-
-  /*
-   * FIXME: should free colors here, but no idea how to do it so instead,
-   * so just keep gobbling up the colormap
-   */
-
-  pix_colors_focused[idx] = xcol;
+  pix_colors_focused[idx].free (this);
+  set_color (pix_colors_focused[idx], color);
 
 done:
   /*TODO: handle Color_BD, scrollbar background, etc. */
 
   update_fade_color (idx);
-  recolour_cursor ();
-  scr_recolour ();
+  recolor_cursor ();
+  scr_recolor ();
 #endif /* XTERM_COLOR_CHANGE */
 }
 
 void
-rxvt_term::recolour_cursor ()
+rxvt_term::recolor_cursor ()
 {
   XColor fg, bg;
 
@@ -1054,6 +1049,7 @@ rxvt_term::set_color (rxvt_color &color, const char *name)
 void
 rxvt_term::alias_color (int dst, int src)
 {
+  pix_colors[dst].free (this);
   pix_colors[dst].set (this, rs[Rs_color + dst] = rs[Rs_color + src]);
 }
 

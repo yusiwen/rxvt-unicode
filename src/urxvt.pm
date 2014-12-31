@@ -47,11 +47,10 @@ Or by adding them to the resource for extensions loaded by default:
 
 Extensions may add additional resources and C<actions>, i.e., methods
 which can be bound to a key and invoked by the user. An extension can
-define the resources it support and also default bindings for one or
-more actions it provides using so called META comments, described
-below. Similarly to builtin resources, extension resources can also be
-specified on the command line as long options (with C<.> replaced by
-C<->), in which case the corresponding extension is loaded
+define the resources it support using so called META comments,
+described below. Similarly to builtin resources, extension resources
+can also be specified on the command line as long options (with C<.>
+replaced by C<->), in which case the corresponding extension is loaded
 automatically. For this to work the extension B<must> define META
 comments for its resources.
 
@@ -117,8 +116,10 @@ the C<urxvt::extension> section below.
 
 =head2 META comments
 
-rxvt-unicode recognizes special comments in extensions that define
-different types of metadata:
+Rxvt-unicode recognizes special meta comments in extensions that define
+different types of metadata.
+
+Currently, it recognises only one such comment:
 
 =over 4
 
@@ -127,14 +128,6 @@ different types of metadata:
 The RESOURCE comment defines a resource used by the extension, where
 C<name> is the resource name, C<type> is the resource type, C<boolean>
 or C<string>, and C<desc> is the resource description.
-
-=item #:META:BINDING:sym:action
-
-The BINDING comment defines a default binding for an action provided
-by the extension, where C<sym> is the key combination that triggers
-the action, whose format is defined in the description of the
-B<keysym> resource in the urxvt(1) manpage, and C<action> is the name
-of the action method.
 
 =back
 
@@ -723,9 +716,7 @@ sub invoke {
          if ($_ eq "default") {
 
             $ext_arg{$_} = []
-               for
-                  qw(selection option-popup selection-popup readline),
-                  map $_->[0], values %{ $TERM->{meta}{binding} };
+               for qw(selection option-popup selection-popup readline searchable-scrollback);
 
             for ($TERM->_keysym_resources) {
                next if /^(?:string|command|builtin|builtin-string|perl)/;
@@ -744,13 +735,6 @@ sub invoke {
 
          } else {
             $ext_arg{$_} ||= [];
-         }
-      }
-
-      # now register default key bindings
-      for my $ext (sort keys %ext_arg) {
-         while (my ($k, $v) = each %{ $TERM->{meta}{ext}{$ext}{binding} }) {
-            $TERM->bind_action ($k, "$v->[0]:$v->[1]");
          }
       }
 
@@ -983,15 +967,24 @@ sub on {
    bless \%disable, "urxvt::extension::on_disable"
 }
 
+=item $self->bind_action ($hotkey, $action)
+
 =item $self->x_resource ($pattern)
 
 =item $self->x_resource_boolean ($pattern)
 
-These methods support an additional C<%> prefix when called on an
-extension object - see the description of these methods in the
-C<urxvt::term> class for details.
+These methods support an additional C<%> prefix for C<$action> or
+C<$pattern> when called on an extension object, compared to the
+C<urxvt::term> methods of the same name - see the description of these
+methods in the C<urxvt::term> class for details.
 
 =cut
+
+sub bind_action {
+   my ($self, $hotkey, $action) = @_;
+   $action =~ s/^%:/$_[0]{_name}:/;
+   $self->{term}->bind_action ($hotkey, $action)
+}
 
 sub x_resource {
    my ($self, $name) = @_;
@@ -1142,20 +1135,30 @@ sub scan_extensions {
 
    return if exists $self->{meta};
 
-   my @libdirs = perl_libdirs $self;
+   my @urxvtdirs = perl_libdirs $self;
+#   my @cpandirs = grep -d, map "$_/URxvt/Ext", @INC;
 
-#   return if $self->{meta_libdirs} eq join "\x00", @libdirs;#d#
-
-#   $self->{meta_libdirs} = join "\x00", @libdirs;#d#
    $self->{meta} = \my %meta;
 
    # first gather extensions
-   for my $dir (reverse @libdirs) {
+
+   my $gather = sub {
+      my ($dir, $core) = @_;
+
       opendir my $fh, $dir
-         or next;
+         or return;
+
       for my $ext (readdir $fh) {
          $ext !~ /^\./
-            and open my $fh, "<", "$dir/$ext"
+            or next;
+
+         open my $fh, "<", "$dir/$ext"
+            or next;
+
+         -f $fh
+            or next;
+
+         $ext =~ s/\.uext$// or $core
             or next;
 
          my %ext = (dir => $dir);
@@ -1169,9 +1172,6 @@ sub scan_extensions {
                } else {
                   $ext{resource}{$pattern} = [$ext, $type, $desc];
                }
-            } elsif (/^#:META:BINDING:(.*)/) {
-               my ($keysym, $action) = split /:/, $1;
-               $ext{binding}{$keysym} = [$ext, $action];
             } elsif (/^\s*(?:#|$)/) {
                # skip other comments and empty lines
             } else {
@@ -1181,13 +1181,18 @@ sub scan_extensions {
 
          $meta{ext}{$ext} = \%ext;
       }
-   }
+   };
 
-   # and now merge resources and bindings
+#   $gather->($_, 0) for @cpandirs;
+   $gather->($_, 1) for @urxvtdirs;
+
+   # and now merge resources
+
+   $meta{resource} = \my %resource;
+
    while (my ($k, $v) = each %{ $meta{ext} }) {
       #TODO: should check for extensions overriding each other
-      %{ $meta{resource} } = (%{ $meta{resource} }, %{ $v->{resource} });
-      %{ $meta{binding}  } = (%{ $meta{binding}  }, %{ $v->{binding}  });
+      %resource = (%resource, %{ $v->{resource} });
    }
 }
 
@@ -1343,10 +1348,25 @@ sub x_resource_boolean {
    $res =~ /^\s*(?:true|yes|on|1)\s*$/i ? 1 : defined $res && 0
 }
 
-=item $success = $term->bind_action ($key, $octets)
+=item $success = $term->bind_action ($key, $action)
 
 Adds a key binding exactly as specified via a C<keysym> resource. See the
 C<keysym> resource in the urxvt(1) manpage.
+
+To add default bindings for actions, an extension should call C<<
+->bind_action >> in its C<init> hook for every such binding. Doing it
+in the C<init> hook allows users to override or remove the binding
+again.
+
+Example: the C<searchable-scrollback> by default binds itself
+on C<Meta-s>, using C<< $self->bind_action >>, which calls C<<
+$term->bind_action >>.
+
+   sub init {
+      my ($self) = @_;
+
+      $self->bind_action ("M-s" => "%:start");
+   }
 
 =item $rend = $term->rstyle ([$new_rstyle])
 
@@ -1514,8 +1534,9 @@ Ring the bell!
 
 Write the given text string to the screen, as if output by the application
 running inside the terminal. It may not contain command sequences (escape
-codes), but is free to use line feeds, carriage returns and tabs. The
-string is a normal text string, not in locale-dependent encoding.
+codes - see C<cmd_parse> for that), but is free to use line feeds,
+carriage returns and tabs. The string is a normal text string, not in
+locale-dependent encoding.
 
 Normally its not a good idea to use this function, as programs might be
 confused by changes in cursor position or scrolling. Its useful inside a
@@ -1533,9 +1554,10 @@ locale-specific encoding of the terminal and can contain command sequences
 
 =item $term->tt_write ($octets)
 
-Write the octets given in C<$octets> to the tty (i.e. as program input). To
-pass characters instead of octets, you should convert your strings first
-to the locale-specific encoding using C<< $term->locale_encode >>.
+Write the octets given in C<$octets> to the tty (i.e. as user input
+to the program, see C<cmd_parse> for the opposite direction). To pass
+characters instead of octets, you should convert your strings first to the
+locale-specific encoding using C<< $term->locale_encode >>.
 
 =item $term->tt_write_user_input ($octets)
 

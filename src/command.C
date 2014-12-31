@@ -1042,7 +1042,7 @@ rxvt_term::cursor_blink_reset ()
       want_refresh = 1;
     }
 
-  if (option (Opt_cursorBlink))
+  if (option (Opt_cursorBlink) || (priv_modes & PrivMode_BlinkingCursor))
     cursor_blink_ev.again ();
   else
     cursor_blink_ev.stop ();
@@ -1241,7 +1241,7 @@ void ecb_cold
 rxvt_term::pointer_unblank ()
 {
   XDefineCursor (dpy, vt, TermWin_cursor);
-  recolour_cursor ();
+  recolor_cursor ();
 
 #ifdef POINTER_BLANK
   hidden_pointer = 0;
@@ -1781,7 +1781,7 @@ rxvt_term::focus_in ()
       if (rs[Rs_fade])
         {
           pix_colors = pix_colors_focused;
-          scr_recolour ();
+          scr_recolor ();
         }
 #endif
 #if ENABLE_FRILLS
@@ -1828,7 +1828,7 @@ rxvt_term::focus_out ()
       if (rs[Rs_fade])
         {
           pix_colors = pix_colors_unfocused;
-          scr_recolour ();
+          scr_recolor ();
         }
 #endif
 
@@ -1837,11 +1837,14 @@ rxvt_term::focus_out ()
 }
 
 void ecb_cold
-rxvt_term::update_fade_color (unsigned int idx)
+rxvt_term::update_fade_color (unsigned int idx, bool first_time)
 {
 #if OFF_FOCUS_FADING
   if (rs[Rs_fade])
     {
+      if (!first_time)
+        pix_colors_focused [idx].free (this);
+
       rgba c;
       pix_colors [Color_fade].get (c);
       pix_colors_focused [idx].fade (this, atoi (rs[Rs_fade]), pix_colors_unfocused [idx], c);
@@ -3682,6 +3685,7 @@ rxvt_term::process_terminal_mode (int mode, int priv ecb_unused, unsigned int na
                   { 7, PrivMode_Autowrap },     // DECAWM
                  // 8, auto-repeat keys         // DECARM
                   { 9, PrivMode_MouseX10 },
+                  { 12, PrivMode_BlinkingCursor },
                  // 18 end FF to printer after print screen
                  // 19 Print screen prints full screen/scroll region
                   { 25, PrivMode_VisibleCursor }, // DECTCEM cnorm/cvvis/civis
@@ -3800,6 +3804,11 @@ rxvt_term::process_terminal_mode (int mode, int priv ecb_unused, unsigned int na
               scr_touch (true);
               break;
 #endif
+#ifdef CURSOR_BLINK
+            case 12:
+              cursor_blink_reset ();
+              break;
+#endif
             case 25:		/* visible/invisible cursor */
               scr_cursor_visible (state);
               break;
@@ -3914,22 +3923,22 @@ rxvt_term::process_sgr_mode (unsigned int nargs, const int *arg)
           case 21: // disable bold, faint, sometimes doubly underlined (iso 8613)
             rendset = 0, rendstyle = RS_Bold;
             break;
-          case 22: // normal intensity
+          case 22: // bold off (vt220)
             rendset = 0, rendstyle = RS_Bold;
             break;
           case 23: // disable italic
             rendset = 0, rendstyle = RS_Italic;
             break;
-          case 24:
+          case 24: // underline off (vt220)
             rendset = 0, rendstyle = RS_Uline;
             break;
-          case 25:
+          case 25: // blink off (vt220)
             rendset = 0, rendstyle = RS_Blink;
             break;
           case 26: // variable spacing (iso 8613)
             rendset = 0, rendstyle = RS_Blink;
             break;
-          case 27:
+          case 27: // reverse off (vt220)
             rendset = 0, rendstyle = RS_RVid;
             break;
           //case 28: // visible. NYI

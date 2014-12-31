@@ -25,6 +25,8 @@
 #include <rxvt.h>
 #include <rxvttoolkit.h>
 
+#include <stdlib.h>
+
 #include <unistd.h>
 #include <fcntl.h>
 
@@ -755,6 +757,13 @@ rxvt_color::alloc (rxvt_screen *screen, const rgba &color)
 #if XFT
   XRenderPictFormat *format;
 
+  // not needed by XftColorAlloc, but by the other paths (ours
+  // and fallback), so just set all components here.
+  c.color.red   = color.r;
+  c.color.green = color.g;
+  c.color.blue  = color.b;
+  c.color.alpha = alpha;
+
   // FUCKING Xft gets it wrong, of course, so work around it.
   // Transparency users should eat shit and die, and then
   // XRenderQueryPictIndexValues themselves plenty.
@@ -762,10 +771,6 @@ rxvt_color::alloc (rxvt_screen *screen, const rgba &color)
       && (format = XRenderFindVisualFormat (screen->dpy, screen->visual)))
     {
       // the fun lies in doing everything manually...
-      c.color.red   = color.r;
-      c.color.green = color.g;
-      c.color.blue  = color.b;
-      c.color.alpha = alpha;
 
       // Xft wants premultiplied alpha, but abuses the alpha channel
       // as blend factor, and doesn't allow us to set the alpha channel
@@ -789,6 +794,7 @@ rxvt_color::alloc (rxvt_screen *screen, const rgba &color)
       d.blue  = color.b;
       d.alpha = alpha;
 
+      // XftColorAlloc always returns 100% transparent pixels(!)
       if (XftColorAllocValue (screen->dpy, screen->visual, screen->cmap, &d, &c))
         return true;
     }
@@ -809,7 +815,7 @@ rxvt_color::alloc (rxvt_screen *screen, const rgba &color)
     return true;
 #endif
 
-  c.pixel = (color.r + color.g + color.b) > 128*3
+  c.pixel = (color.r * 2 + color.g * 3 + color.b) >= 0x8000 * 6
           ? WhitePixelOfScreen (DefaultScreenOfDisplay (screen->dpy))
           : BlackPixelOfScreen (DefaultScreenOfDisplay (screen->dpy));
 
@@ -877,26 +883,35 @@ rxvt_color::set (rxvt_screen *screen, const rgba &color)
       // many extra optimisations.
       XQueryColors (screen->dpy, screen->cmap, colors, cmap_size);
 
-      int diff = 0x7fffffffUL;
-      XColor *best = colors;
-
-      for (int i = 0; i < cmap_size; i++)
+      while (cmap_size)
         {
-          int d = (squared_diff<int> (color.r >> 2, colors [i].red   >> 2))
-                + (squared_diff<int> (color.g >> 2, colors [i].green >> 2))
-                + (squared_diff<int> (color.b >> 2, colors [i].blue  >> 2));
+          int diff = 0x7fffffffL;
+          XColor *best = colors;
 
-          if (d < diff)
+          for (int i = 0; i < cmap_size; i++)
             {
-              diff = d;
-              best = colors + i;
+              // simple weighted rgb distance sucks, but keeps it simple
+              int d = abs (color.r - colors [i].red  ) * 2
+                    + abs (color.g - colors [i].green) * 3
+                    + abs (color.b - colors [i].blue );
+
+              if (d < diff)
+                {
+                  diff = d;
+                  best = colors + i;
+                }
             }
+
+          //rxvt_warn ("could not allocate %04x %04x %04x, getting %04x %04x %04x instead (%d,%d)\n",
+          //    color.r, color.g, color.b, best->red, best->green, best->blue, diff, best - colors);
+
+          got = alloc (screen, rgba (best->red, best->green, best->blue));
+
+          if (got)
+            break;
+
+          *best = colors [--cmap_size];
         }
-
-      //rxvt_warn ("could not allocate %04x %04x %04x, getting %04x %04x %04x instead (%d)\n",
-      //    color.r, color.g, color.b, best->red, best->green, best->blue, diff);
-
-      got = alloc (screen, rgba (best->red, best->green, best->blue));
 
       delete [] colors;
     }
@@ -909,15 +924,26 @@ void
 rxvt_color::get (rgba &color) const
 {
 #if XFT
+
   color.r = c.color.red;
   color.g = c.color.green;
   color.b = c.color.blue;
   color.a = c.color.alpha;
+
+  if (IN_RANGE_INC (color.a, 0x0001, 0xfffe))
+    {
+      color.r = color.r * 0xffff / color.a;
+      color.g = color.g * 0xffff / color.a;
+      color.b = color.b * 0xffff / color.a;
+    }
+
 #else
+
   color.r = c.red;
   color.g = c.green;
   color.b = c.blue;
   color.a = rgba::MAX_CC;
+
 #endif
 }
 
