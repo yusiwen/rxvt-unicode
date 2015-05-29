@@ -10,3 +10,5 @@ src/rxvt
 src/rxvtc
 src/rxvtd
 src/rxvtperl.C
+src/manlst
+src/mantmp
