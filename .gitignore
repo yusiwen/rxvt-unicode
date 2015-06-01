@@ -1,0 +1,14 @@
+Makefile
+config.h
+config.log
+config.status
+config.cache
+*.o
+*.man
+src/perlxsi.c
+src/rxvt
+src/rxvtc
+src/rxvtd
+src/rxvtperl.C
+src/manlst
+src/mantmp
