@@ -873,8 +873,7 @@ bottom when a non-special key is pressed; option B<+sk>.
 
 =item B<saveLines:> I<number>
 
-Save I<number> lines in the scrollback buffer [default 64]. This
-resource is limited on most machines to 65535; option B<-sl>.
+Save I<number> lines in the scrollback buffer [default 1000]; option B<-sl>.
 
 =item B<internalBorder:> I<number>
 
@@ -946,6 +945,12 @@ Mouse pointer foreground colour.
 =item B<pointerColor2:> I<colour>
 
 Mouse pointer background colour.
+
+=item B<pointerShape:> I<string>
+
+Compile I<frills>: Specifies the name of the mouse pointer shape
+[default B<xterm>]. See the macros in the B<X11/cursorfont.h> include
+file for possible values (omit the C<XC_> prefix).
 
 =item B<pointerBlankDelay:> I<number>
 
