@@ -1614,8 +1614,9 @@ rxvt_term::x_cb (XEvent &ev)
         if (hidden_pointer)
           pointer_unblank ();
 #endif
-        if ((priv_modes & PrivMode_MouseBtnEvent && ev.xbutton.state & (Button1Mask|Button2Mask|Button3Mask))
-            || priv_modes & PrivMode_MouseAnyEvent)
+        if (!bypass_keystate
+            && ((priv_modes & PrivMode_MouseBtnEvent && ev.xbutton.state & (Button1Mask|Button2Mask|Button3Mask))
+                || priv_modes & PrivMode_MouseAnyEvent))
           mouse_report (ev.xbutton);
         if ((priv_modes & PrivMode_mouse_report) && !bypass_keystate)
           break;
@@ -3339,7 +3340,7 @@ rxvt_term::process_color_seq (int report, int color, const char *str, char resp)
 
 #if XFT
       if (c.a != rgba::MAX_CC)
-        tt_printf ("\033]%d;rgba:%04x/%04x/%04x/%04x%c", report, c.a, c.r, c.g, c.b, resp);
+        tt_printf ("\033]%d;rgba:%04x/%04x/%04x/%04x%c", report, c.r, c.g, c.b, c.a, resp);
       else
 #endif
         tt_printf ("\033]%d;rgb:%04x/%04x/%04x%c", report, c.r, c.g, c.b, resp);
