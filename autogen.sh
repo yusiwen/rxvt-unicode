@@ -5,7 +5,19 @@ if ! [ -e libev/ev++.h ]; then
 **
 ** libev/ directory is missing
 **
-** you need a checkout of libev (http://software.schmorp.de/pkg/libev)
+** you need a checkout of libev (http://software.schmorp.de/pkg/libev.html)
+** in the top-level build directory.
+**
+EOF
+   exit 1
+fi
+
+if ! [ -e libptytty/ptytty.m4 ]; then
+   cat <<EOF
+**
+** libptytty/ directory is missing
+**
+** you need a checkout of libptytty (http://software.schmorp.de/pkg/libptytty.html)
 ** in the top-level build directory.
 **
 EOF
