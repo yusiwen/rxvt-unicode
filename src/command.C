@@ -2356,8 +2356,8 @@ rxvt_term::next_char () NOTHROW
 {
   while (cmdbuf_ptr < cmdbuf_endp)
     {
-      // assume 7-bit to be ascii ALWAYS
-      if (ecb_likely ((unsigned char)*cmdbuf_ptr <= 0x7f && *cmdbuf_ptr != 0x1b))
+      // assume 7-bit to be ascii ALWAYS (always true in POSIX)
+      if (ecb_likely ((unsigned char)*cmdbuf_ptr <= 0x7f))
         return *cmdbuf_ptr++;
 
       wchar_t wc;
@@ -2692,12 +2692,14 @@ rxvt_term::process_escape_seq ()
         }
         break;
 
+#if 0 // disabled because embedded newlines can make exploits easier
         /* kidnapped escape sequence: Should be 8.3.48 */
       case C1_ESA:		/* ESC G */
         // used by original rxvt for rob nations own graphics mode
         if (cmd_getc () == 'Q' && option (Opt_insecure))
           tt_printf ("\033G0\012");	/* query graphics - no graphics */
         break;
+#endif
 
         /* 8.3.63: CHARACTER TABULATION SET */
       case C1_HTS:		/* ESC H */
