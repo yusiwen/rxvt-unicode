@@ -2869,6 +2869,8 @@ rxvt_term::process_csi_seq ()
           case '?':
             if (ch == 'h' || ch == 'l' || ch == 'r' || ch == 's' || ch == 't')
               process_terminal_mode (ch, priv, nargs, arg);
+            if (prev_ch == '$' && ch == 'p')
+              process_terminal_mode (ch, priv, nargs, arg);
             break;
 
           case '!':
@@ -3397,15 +3399,19 @@ rxvt_term::process_color_seq (int report, int color, const char *str, char resp)
 {
   if (str[0] == '?' && !str[1])
     {
+      if (!IN_RANGE_INC (color, minCOLOR, maxTermCOLOR))
+        return;
+
       rgba c;
       pix_colors_focused[color].get (c);
+      color -= minCOLOR;
 
 #if XFT
       if (c.a != rgba::MAX_CC)
-        tt_printf ("\033]%d;rgba:%04x/%04x/%04x/%04x%c", report, c.r, c.g, c.b, c.a, resp);
+        tt_printf ("\033]%d;%d;rgba:%04x/%04x/%04x/%04x%c", report, color, c.r, c.g, c.b, c.a, resp);
       else
 #endif
-        tt_printf ("\033]%d;rgb:%04x/%04x/%04x%c", report, c.r, c.g, c.b, resp);
+        tt_printf ("\033]%d;%d;rgb:%04x/%04x/%04x%c", report, color, c.r, c.g, c.b, resp);
     }
   else
     set_window_color (color, str);
@@ -3724,6 +3730,24 @@ rxvt_term::process_terminal_mode (int mode, int priv ecb_unused, unsigned int na
 
   if (nargs == 0)
     return;
+
+  // DECRQM
+  if (mode == 'p')
+    {
+      int status = 0;
+      if (nargs != 1)
+        return;
+
+      for (j = 0; j < ecb_array_length (argtopriv); j++)
+        if (argtopriv[j].argval == arg[0])
+          {
+            status = (priv_modes & argtopriv[j].bit) ? 1 : 2;
+            break;
+          }
+
+      tt_printf ("\33[?%d;%d$y", arg[0], status);
+      return;
+    }
 
   /* make lo/hi boolean */
   if (mode == 'l')
