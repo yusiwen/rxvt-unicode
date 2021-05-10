@@ -47,6 +47,7 @@ COMMON_DAEMON = rxvtdaemon.o
 RXVT_BINNAME=$(DESTDIR)$(bindir)/$(RXVTNAME)$(EXEEXT)
 RXVTC_BINNAME=$(DESTDIR)$(bindir)/$(RXVTNAME)c$(EXEEXT)
 RXVTD_BINNAME=$(DESTDIR)$(bindir)/$(RXVTNAME)d$(EXEEXT)
+RCLOCK_BINNAME=$(DESTDIR)$(bindir)/$(RXVTNAME)clock$(EXEEXT)
 
 #
 # Distribution variables
@@ -71,6 +72,9 @@ rxvtd: rxvtd.o $(COMMON) $(COMMON_DAEMON)
 
 rxvtc: rxvtc.o $(COMMON_DAEMON) fdpass_wrapper.o
 	$(LINK) -o $@ rxvtc.o $(COMMON_DAEMON) fdpass_wrapper.o $(LIBS)
+
+rclock: rclock.o
+	$(LINK) -o $@ rclock.o $(LIBS) $(XLIB)
 
 #-------------------------------------------------------------------------
 
