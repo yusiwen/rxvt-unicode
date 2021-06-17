@@ -34,6 +34,7 @@ struct rxvt_font
   char *name;
   codeset cs;
   bool loaded; // whether we tried loading it before (not whether it's loaded)
+  bool can_compose; // whether the font composes glyphs itself or not, should be a class method, but.. speed....
 
   // managed by the font object
   int ascent, descent,
@@ -99,6 +100,15 @@ struct rxvt_fontset
   find_font (unicode_t unicode)
   {
     return min<int> ((fontCount << 1) | 1, find_font_idx (unicode));
+  }
+
+  // find the font containing ' ' - we always assume this is font 1, as
+  // every font should contain space, and font 1 is our base font.
+  // pango assumes this, so it must be correct!
+  int
+  find_space_font ()
+  {
+    return 1 << 1;
   }
 
 private:

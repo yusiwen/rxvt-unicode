@@ -214,7 +214,7 @@ enc_xchar2b (const text_t *text, uint32_t len, codeset cs, bool &zero)
 /////////////////////////////////////////////////////////////////////////////
 
 rxvt_font::rxvt_font ()
-: name(0), width(rxvt_fontprop::unset), height(rxvt_fontprop::unset)
+: name(0), width(rxvt_fontprop::unset), height(rxvt_fontprop::unset), can_compose(false)
 {
 }
 
@@ -264,7 +264,8 @@ rxvt_font::clear_rect (rxvt_drawable &d, int x, int y, int w, int h, int color) 
 
 /////////////////////////////////////////////////////////////////////////////
 
-struct rxvt_font_default : rxvt_font {
+struct rxvt_font_default : rxvt_font
+{
   struct rxvt_fontset *fs;
 
   rxvt_font_default (rxvt_fontset *fs)
@@ -314,8 +315,8 @@ struct rxvt_font_default : rxvt_font {
       return true;
 #endif
 
-    if (IS_COMPOSE (unicode))
-      return true;
+    // we do not check for IS_COMPOSE here, as this would
+    // rob other fonts from taking over.
 
     switch (unicode)
       {
@@ -346,15 +347,15 @@ rxvt_font_default::draw (rxvt_drawable &d, int x, int y,
 
   while (len)
     {
-#if ENABLE_COMBINING
-      compose_char *cc;
-#endif
       const text_t *tp = text;
       text_t t  = *tp;
 
       while (++text, --len && *text == NOCHAR)
         ;
 
+#if ENABLE_COMBINING
+      compose_char *cc;
+#endif
       int width = text - tp;
       int fwidth = term->fwidth * width;
 
@@ -447,6 +448,28 @@ rxvt_font_default::draw (rxvt_drawable &d, int x, int y,
         {
           min_it (width, 2); // we only support wcwidth up to 2
 
+          #if NOT_YET
+          vector<text_t> chrs;
+          chrs.reserve (rxvt_composite.expand (t));
+          rxvt_composite.expand (t, &chrs[0]);
+
+          while (!chrs.empty ())
+            {
+              rxvt_font *f1 = fs->find_font_idx (chrs[0])
+
+              int i = 0;
+              while (i < chrs.size () - 1
+                     && f1->can_combine
+                     && f1->has-char (chrs[i + 1], careful)
+                     && !careful
+                ++i;
+
+              (*fs)[f1]->draw (d, x, y, &chrs[0], width, fg, bg);
+              chrs.erase (&chrs[0], &chrs[i]);
+            }
+          #endif
+
+          #if 1
           text_t chrs[2];
           chrs [1] = NOCHAR;
 
@@ -466,6 +489,7 @@ rxvt_font_default::draw (rxvt_drawable &d, int x, int y,
 
               f2->draw (d, x, y, chrs, width, fg, Color_none);
             }
+          #endif
         }
 #endif
       else
@@ -494,7 +518,8 @@ rxvt_font_default::draw (rxvt_drawable &d, int x, int y,
     }
 }
 
-struct rxvt_font_overflow : rxvt_font {
+struct rxvt_font_overflow : rxvt_font
+{
   struct rxvt_fontset *fs;
 
   rxvt_font_overflow (rxvt_fontset *fs)
@@ -550,7 +575,8 @@ struct rxvt_font_overflow : rxvt_font {
 
 /////////////////////////////////////////////////////////////////////////////
 
-struct rxvt_font_x11 : rxvt_font {
+struct rxvt_font_x11 : rxvt_font
+{
   rxvt_font_x11 () { f = 0; }
 
   void clear ();
@@ -1135,8 +1161,13 @@ rxvt_font_x11::draw (rxvt_drawable &d, int x, int y,
 
 #if XFT
 
-struct rxvt_font_xft : rxvt_font {
-  rxvt_font_xft () { f = 0; }
+struct rxvt_font_xft : rxvt_font
+{
+  rxvt_font_xft ()
+  {
+    can_compose = true;
+    f = 0;
+  }
 
   void clear ();
 
@@ -1288,12 +1319,8 @@ rxvt_font_xft::load (const rxvt_fontprop &prop, bool force_prop)
 
       if (!width)
         {
-          rxvt_warn ("unable to calculate font width for '%s', ignoring.\n", name);
-
-          XftFontClose (disp, f);
-          f = 0;
-
-          success = false;
+          rxvt_warn ("unable to calculate font width for '%s', using max_advance_width.\n", name);
+          width = f->max_advance_width;
           break;
         }
 
@@ -1338,7 +1365,19 @@ rxvt_font_xft::has_char (unicode_t unicode, const rxvt_fontprop *prop, bool &car
 {
   careful = false;
 
+#if ENABLE_COMBINING && !UNICODE_3
+  if (ecb_expect_false (IS_COMPOSE (unicode)))
+    if (compose_char *cc = rxvt_composite[unicode])
+      if (cc->c2 == NOCHAR)
+        unicode = cc->c1;
+#endif
+
   if (!XftCharExists (term->dpy, f, unicode))
+    return false;
+
+  // some fonts claim they can render private use chars and then
+  // render them as boxes.
+  if (ecb_expect_false (IS_COMPOSE (unicode)))
     return false;
 
   if (!prop || prop->width == rxvt_fontprop::unset)
@@ -1393,6 +1432,12 @@ rxvt_font_xft::draw (rxvt_drawable &d, int x, int y,
     {
       int cwidth = term->fwidth;
       FcChar32 fc = *text++; len--;
+
+#if ENABLE_COMBINING && !UNICODE_3
+      if (ecb_expect_false (IS_COMPOSE (fc)))
+        if (compose_char *cc = rxvt_composite[fc]) // should always be true, but better be safe than sorry
+          fc = cc->c1; // c2 must be NOCHAR, as has_char handles it that way
+#endif
 
       while (len && *text == NOCHAR)
         text++, len--, cwidth += term->fwidth;
@@ -1688,15 +1733,16 @@ rxvt_fontset::find_font (const char *name) const
 int
 rxvt_fontset::find_font_idx (unicode_t unicode)
 {
-  if (unicode >= 1<<20)
+  // this limits fmap size. it has to accomodate COMPOSE_HI when UNICODE_3
+  if (unicode > 0x1fffff)
     return 0;
 
   unicode_t hi = unicode >> 8;
 
-  if (hi < fmap.size ()
-      && fmap[hi]
-      && (*fmap[hi])[unicode & 0xff] != 0xff)
-    return (*fmap[hi])[unicode & 0xff];
+  if (hi < fmap.size ())
+    if (pagemap *pm = fmap[hi])
+      if ((*pm)[unicode & 0xff] != 0xff)
+        return (*pm)[unicode & 0xff];
 
   unsigned int i;
 
@@ -1730,6 +1776,11 @@ rxvt_fontset::find_font_idx (unicode_t unicode)
     next_font:
       if (i == fonts.size () - 1)
         {
+          // compose characters are handled by the default font, unless another font takes over
+          // we do not go via the fallback list for speed reasons.
+          if (IS_COMPOSE (unicode))
+            return 0;
+
           if (fallback->name)
             {
               // search through the fallback list

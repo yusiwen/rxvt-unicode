@@ -109,7 +109,7 @@ rxvt_term::scr_blank_line (line_t &l, unsigned int col, unsigned int width, rend
   l.touch ();
 
   efs &= ~RS_baseattrMask; // remove italic etc. fontstyles
-  efs = SET_FONT (efs, FONTSET (efs)->find_font (' '));
+  efs = SET_FONT (efs, FONTSET (efs)->find_space_font ());
 
   text_t *et = l.t + col;
   rend_t *er = l.r + col;
@@ -141,7 +141,7 @@ rxvt_term::scr_kill_char (line_t &l, int col) const noexcept
     col--;
 
   rend_t rend = l.r[col] & ~RS_baseattrMask;
-  rend = SET_FONT (rend, FONTSET (rend)->find_font (' '));
+  rend = SET_FONT (rend, FONTSET (rend)->find_space_font ());
 
   l.touch ();
 
@@ -2852,7 +2852,7 @@ rxvt_term::selection_make (Time tm)
 #if ENABLE_COMBINING
           else if (IS_COMPOSE (*t))
             {
-              int len = rxvt_composite.expand (*t, 0);
+              int len = rxvt_composite.expand (*t);
 
               extra -= (len - 1);
 
