@@ -791,7 +791,7 @@ struct mbstate
 // not fitting in the BMP.
 struct compose_char
 {
-  // c1 can be any chaarcter != NOCHAR, including another compose character
+  // c1 can be any character != NOCHAR, including another compose character
   // c2 must always be a zero-width character or NOCHAR, in case
   // this just extends beyond the BMP.
   unicode_t c1, c2;
@@ -819,6 +819,7 @@ struct rxvt_composite_vec
 extern class rxvt_composite_vec rxvt_composite;
 #endif
 
+#if 0
 // expand the sequence into a static array
 // works even without ENABLE_COMBINING
 template<typename T, int max_size_ = 48>
@@ -875,6 +876,7 @@ struct rxvt_compose_expand_static
   }
 #endif
 };
+#endif
 
 /****************************************************************************/
 

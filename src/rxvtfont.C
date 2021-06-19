@@ -1408,19 +1408,19 @@ rxvt_font_xft::draw (rxvt_drawable &d, int x, int y,
       int cwidth = term->fwidth;
       FcChar32 chr = *text++; len--;
 
-      // handle non-bmp chars when text_t is 16 bit
-      #if ENABLE_COMBINING && !UNICODE_3
-        if (ecb_expect_false (IS_COMPOSE (chr)))
-          if (compose_char *cc = rxvt_composite [chr])
-            if (cc->c2 == NOCHAR)
-              chr = cc->c1;
-      #endif
-
       while (len && *text == NOCHAR)
         text++, len--, cwidth += term->fwidth;
 
       if (chr != ' ') // skip spaces
         {
+          // handle non-bmp chars when text_t is 16 bit
+          #if ENABLE_COMBINING && !UNICODE_3
+            if (ecb_expect_false (IS_COMPOSE (chr)))
+              if (compose_char *cc = rxvt_composite [chr])
+                if (cc->c2 == NOCHAR)
+                  chr = cc->c1;
+          #endif
+
           #if 0
           FT_UInt glyphs [decltype (exp)::max_size];
 
@@ -1444,8 +1444,8 @@ rxvt_font_xft::draw (rxvt_drawable &d, int x, int y,
           ep->y = y_ + ascent;
 
           // the xft font cell might differ from the terminal font cell,
-          // in which we use the average between the two
-          ep->x += cwidth - extents.xOff >> 1;
+          // in which case we use the average between the two.
+          ep->x += extents.xOff ? cwidth - extents.xOff >> 1 : 0;
 
           // xft/freetype represent combining characters as characters with zero
           // width rendered over the previous character with some fonts, while
@@ -1453,7 +1453,7 @@ rxvt_font_xft::draw (rxvt_drawable &d, int x, int y,
           // in other fonts, they are shifted all over the place.
           // we handle the first two cases by keying off on xOff being 0
           // for zero-width chars. normally, we would add extents.xOff
-          // of the base chaarcter here, but we don't have that, so we use cwidth.
+          // of the base character here, but we don't have that, so we use cwidth.
           ep->x += extents.xOff ? 0 : cwidth;
 
           ++ep;
@@ -1735,7 +1735,7 @@ rxvt_fontset::find_font (const char *name) const
 int
 rxvt_fontset::find_font_idx (unicode_t unicode)
 {
-  // this limits fmap size. it has to accomodate COMPOSE_HI when UNICODE_3
+  // this limits fmap size. it has to accommodate COMPOSE_HI when UNICODE_3
   if (unicode > 0x1fffff)
     return 0;
 
