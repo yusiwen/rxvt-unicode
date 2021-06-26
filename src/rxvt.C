@@ -39,8 +39,9 @@ try
 
     return EXIT_SUCCESS;
   }
-catch (const class rxvt_failure_exception &e)
+catch (const std::exception &e)
   {
+    fputs (e.what (), stderr);
     return EXIT_FAILURE;
   }
 

@@ -207,8 +207,9 @@ void server::read_cb (ev::io &w, int revents)
               {
                 term->init (argv, envv);
               }
-            catch (const class rxvt_failure_exception &e)
+            catch (const std::exception &e)
               {
+                log_msg (e.what());
                 success = false;
               }
 
@@ -276,7 +277,15 @@ static int get_listen_fds ()
 int
 main (int argc, char *argv[])
 {
-  ptytty::init ();
+  try
+    {
+      ptytty::init ();
+    }
+  catch (const std::exception &e)
+    {
+      fputs (e.what (), stderr);
+      return EXIT_FAILURE;
+    }
 
   static char opt_fork, opt_opendisplay, opt_quiet;
 #if ENABLE_PERL
