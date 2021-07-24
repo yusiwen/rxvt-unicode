@@ -86,7 +86,7 @@ Orange'.
 
 The following options are available:
 
-=over 4
+=over
 
 =item B<-help>, B<--help>
 
@@ -571,7 +571,7 @@ settings. The following resources are supported (you might want to
 check the @@RXVT_NAME@@perl(3) manpage for additional settings by perl
 extensions not documented here):
 
-=over 4
+=over
 
 =item B<depth:> I<bitdepth>
 
@@ -1159,7 +1159,7 @@ prefixed with C<string:>).
 The following action prefixes are known - extensions can provide
 additional prefixes:
 
-=over 4
+=over
 
 =item string:STRING
 
@@ -1289,15 +1289,24 @@ extensions. It is still supported, but should not be used anymore.
 Comma-separated list(s) of perl extension scripts (default: C<default>) to
 use in this terminal instance; option B<-pe>.
 
-Extension names can be prefixed with a C<-> sign to prohibit using
-them. This can be useful to selectively disable some extensions loaded
-by default, or specified via the C<perl-ext-common> resource. For
-example, C<default,-selection> will use all the default extensions except
-C<selection>.
+Extension names can be prefixed with a C<-> sign to remove them again, in
+case they had been specified earlier. This can be useful to selectively
+disable some extensions loaded by default, or specified via the
+C<perl-ext-common> resource. For example, C<default,-selection> will use
+all the default extensions except C<selection>.
+
+To prohibit autoloading of extensions, you can prefix them with C</>,
+which will make urxvt refuse to automatically load them (this can be
+overriden, however, by specifying the extension name again without a
+prefix, though). This does not prohibit extensions themselves loading
+other extensions. For example, C<default,/background> will keep the
+C<background> extension from being loaded when a background OSC sequence
+is received.
 
 The default set includes the C<selection>, C<option-popup>,
-C<selection-popup>, C<readline> and C<searchable-scrollback>
-extensions, and extensions which are mentioned in B<keysym> resources.
+C<selection-popup>, C<readline>, C<searchable-scrollback> and
+C<confirm-paste> extensions, as well as any extensions which are mentioned
+in B<keysym> resources.
 
 Any extension such that a corresponding resource is given on the
 command line is automatically appended to B<perl-ext>.
@@ -1397,7 +1406,7 @@ respectively.
 The behaviour of text selection and insertion/pasting mechanism is similar
 to I<xterm>(1).
 
-=over 4
+=over
 
 =item B<Selecting>:
 
@@ -1454,7 +1463,7 @@ first part is available if rxvt-unicode has been compiled with
 C<--enable-frills>, the rest is available when rxvt-unicode was compiled
 with C<--enable-iso14755>.
 
-=over 4
+=over
 
 =item * 5.1: Basic method
 
@@ -1644,7 +1653,7 @@ extension.
 
 B<@@RXVT_NAME@@> sets and/or uses the following environment variables:
 
-=over 4
+=over
 
 =item B<TERM>
 
@@ -1725,7 +1734,7 @@ If set and accessible, gives the name of a X resource file to be loaded by
 
 =head1 FILES
 
-=over 4
+=over
 
 =item B</usr/lib/X11/rgb.txt>
 
@@ -1740,7 +1749,7 @@ Colour names.
 
 =head1 CURRENT PROJECT COORDINATOR
 
-=over 4
+=over
 
 =item Project Coordinator
 
@@ -1752,7 +1761,7 @@ L<http://software.schmorp.de/pkg/rxvt-unicode.html>
 
 =head1 AUTHORS
 
-=over 4
+=over
 
 =item John Bovey
 
