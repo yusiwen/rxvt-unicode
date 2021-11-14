@@ -41,6 +41,8 @@
 
 #include "ecb.h"
 
+#include "version.h"
+
 #define APL_CLASS	"Clock"
 #define APL_NAME	"rclock"
 #define MSG_CLASS	"Appointment"
@@ -51,8 +53,6 @@
 # define EXIT_SUCCESS	0
 # define EXIT_FAILURE	1
 #endif
-
-#define VERSION "TODO: fetch from urxvt somehow"
 
 /*--------------------------------*-C-*---------------------------------*
  * Compile-time configuration.
@@ -358,7 +358,7 @@ usage ()
     {"#geom", "icon window geometry"}
   };
 
-  fprintf (stderr, "\nUsage v" VERSION ":\n  " APL_NAME " [options]\n\n" "where options include:\n");
+  fprintf (stderr, "\nUsage for urclock version " VERSION "\n\n  urclock [options]\n\n" "where options include:\n");
 
   for (i = 0; i < (int)optList_size (); i++)
     fprintf (stderr, "    %-29s%s\n", optList[i].opt, optList[i].desc);
@@ -840,6 +840,9 @@ Draw_Window (mywindow_t *W, int full_redraw)
 #ifdef REMINDERS
   static int lastUpdateTime = -10;
 #endif
+#ifdef DATE_ON_CLOCK_FACE
+  static char clockdate[10];
+#endif
 
 #ifdef MAIL
   static time_t mailTime = 0;
@@ -910,8 +913,16 @@ Draw_Window (mywindow_t *W, int full_redraw)
       strftime (str, sizeof (str), "%a %h %d", tmval);
       XStoreName (Xdisplay, Clock.win, str);
       XSetIconName (Xdisplay, Clock.win, str);
+
+#if defined(REMINDERS) && defined(DATE_ON_CLOCK_FACE)
+      if (show_date)
+        {
+          strftime (clockdate, sizeof (clockdate), "%d", tmval);
+          full_redraw = 1;
+        }
     }
 
+#endif
   if (full_redraw)
     XClearWindow (Xdisplay, W->win);
 
@@ -942,12 +953,12 @@ Draw_Window (mywindow_t *W, int full_redraw)
                         XTextWidth (Xfont, beg, (end - beg))) / 2, 10 + Xfont->ascent + FontHeight () * lines, beg, (end - beg));
         }
 
-      XDrawString (Xdisplay, msgButton.Dismiss, Xrvgc, (msgButton.width - XTextWidth (Xfont, "Done", 4)) / 2, Xfont->ascent + 2, "Done", 4);
+      XDrawString (Xdisplay, msgButton.Dismiss, Xrvgc, (msgButton.width - XTextWidth (Xfont, "Done" , 4)) / 2, Xfont->ascent + 2, "Done" , 4);
 
-      XDrawString (Xdisplay, msgButton.Defer, Xrvgc, (msgButton.width - XTextWidth (Xfont, "Defer", 5)) / 2, Xfont->ascent + 2, "Defer", 5);
+      XDrawString (Xdisplay, msgButton.Defer  , Xrvgc, (msgButton.width - XTextWidth (Xfont, "Defer", 5)) / 2, Xfont->ascent + 2, "Defer", 5);
 
 # ifndef NO_REMINDER_EXEC
-      XDrawString (Xdisplay, msgButton.Start, Xrvgc, (msgButton.width - XTextWidth (Xfont, "Start", 5)) / 2, Xfont->ascent + 2, "Start", 5);
+      XDrawString (Xdisplay, msgButton.Start  , Xrvgc, (msgButton.width - XTextWidth (Xfont, "Start", 5)) / 2, Xfont->ascent + 2, "Start", 5);
 
       if (strlen (execPrgm) > 1)
         XMapWindow (Xdisplay, msgButton.Start);
@@ -1033,21 +1044,12 @@ Draw_Window (mywindow_t *W, int full_redraw)
    * Draw the date in the lower half of the clock window.
    * The code is enclosed in REMINDERS because it uses the same
    * font as the reminders code.
-   * I believe this should be drawn always so it does not get
-   * "swept away" by the minute hand.
    */
 #if defined(REMINDERS) && defined(DATE_ON_CLOCK_FACE)
   if (show_date)
-    {
-      char date[10];
-
-      currentTime = time (NULL) + adjustTime;   /* get the current time */
-      tmval = localtime (&currentTime);
-      strftime (date, sizeof (date), "%d", tmval);
-      XDrawString (Xdisplay, W->win, X_gc,
-                   ctr_x - XTextWidth (Xfont, date, strlen (date)) / 2,
-                   ctr_y + FontHeight () + (ctr_y - FontHeight ()) / 2, date, strlen (date));
-    }
+    XDrawString (Xdisplay, W->win, X_gc,
+                 ctr_x - XTextWidth (Xfont, clockdate, strlen (clockdate)) / 2,
+                 ctr_y + FontHeight () + (ctr_y - FontHeight ()) / 2, clockdate, strlen (clockdate));
 #endif
 
   if (full_redraw)
