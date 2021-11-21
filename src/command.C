@@ -3600,7 +3600,6 @@ rxvt_term::process_xterm_seq (int op, char *str, char resp)
                      resp);
         break;
 
-#if !ENABLE_MINIMAL
       case URxvt_cellinfo:
         if (query)
           tt_printf ("\33]%d;%d;%d;%d%c", saveop,
@@ -3608,6 +3607,7 @@ rxvt_term::process_xterm_seq (int op, char *str, char resp)
                      resp);
         break;
 
+#if !ENABLE_MINIMAL
       case URxvt_locale:
         if (query)
           tt_printf ("\33]%d;%-.250s%c", op, option (Opt_insecure) ? locale : "", resp);
