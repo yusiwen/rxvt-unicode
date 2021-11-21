@@ -88,14 +88,44 @@ Example: use a custom configuration.
     URxvt.matcher.pattern.2:  \\B(/\\S+?):(\\d+)(?=:|$)
     URxvt.matcher.launcher.2: gvim +$2 $1
 
+=head2 Regex encoding/wide character matching
+
+Urxvt stores all text as unicode, in a special encoding that uses
+one character/code point per column. For various reasons, the regular
+expressions are matched directly against this encoding, which means there are a few things
+you need to keep in mind:
+
+=over
+
+=item X resources/command line arguments are locale-encoded
+
+The regexes taken from the command line or resources will be converted
+from locale encoding to unicode. This can change the number of code points
+per character.
+
+=item Wide characters are column-padded with C<$urxvt::NOCHAR>
+
+Wide characters (such as kanji and sometimes tabs) are padded with
+a special character value (C<$urxvt::NOCHAR>). That means that
+constructs such as C<\w> or C<.> will only match part of a character, as
+C<$urxvt::NOCHAR> is not matched by C<\w> and both only match the first
+"column" of a wide character.
+
+That means you have to incorporate C<$urxvt::NOCHAR> into parts of regexes
+that may match wide characters. For example, to match C<\w+> you might
+want to use C<[\w$urxvt::NOCHAR]+> instead, and to match a single character
+(C<.>) you might want to use C<.$urxvt::NOCHAR*> instead.
+
+=back
+
 =cut
 
 my $url =
    qr{
       (?:https?://|ftp://|news://|mailto:|file://|\bwww\.)
-      [\w\-\@;\/?:&=%\$.+!*\x27,~#]*
+      [\w\-\@;\/?:&=%\$.+!*\x27,~#$urxvt::NOCHAR]*
       (
-         \([\w\-\@;\/?:&=%\$.+!*\x27,~#]*\)| # Allow a pair of matched parentheses
+         \([\w\-\@;\/?:&=%\$.+!*\x27,~#$urxvt::NOCHAR]*\)| # Allow a pair of matched parentheses
          [\w\-\@;\/?:&=%\$+*~]  # exclude some trailing characters (heuristic)
       )+
    }x;
@@ -253,9 +283,7 @@ sub on_start {
 
    my @defaults = ($url);
    my @matchers;
-   for (my $idx = 0; defined (my $res = $self->my_resource ("pattern.$idx") || $defaults[$idx]); $idx++) {
-      $res = $self->locale_decode ($res);
-      utf8::encode $res;
+   for (my $idx = 0; defined (my $res = $self->locale_decode ($self->my_resource ("pattern.$idx")) || $defaults[$idx]); $idx++) {
       my $launcher = $self->my_resource ("launcher.$idx");
       $launcher =~ s/\$&|\$\{&\}/\${0}/g if $launcher;
       my $rend = $self->parse_rend($self->my_resource ("rend.$idx"));
