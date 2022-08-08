@@ -334,11 +334,11 @@ rxvt_term::scr_reset ()
 
               int qlines = max (0, (llen - 1) / ncol) + 1;
 
-              q -= qlines;
-
               // drop partial lines completely
-              if (q < 0)
+              if (q < qlines)
                 break;
+
+              q -= qlines;
 
               int lofs = 0;
               line_t *qline;
@@ -389,17 +389,13 @@ rxvt_term::scr_reset ()
               scr_blank_line (*qline, qline->l, ncol - qline->l, DEFAULT_RSTYLE);
             }
           while (p != pend && q > 0);
-
-          top_row = q - term_start;
-
-          // make sure all terminal lines exist
-          while (top_row > 0)
-            scr_blank_screen_mem (ROW (--top_row), DEFAULT_RSTYLE);
         }
       else
 #endif
         {
           // wing, instead of wrap
+          screen.cur.row += nrow - prev_nrow;
+
           do
             {
               p = MOD (p - 1, prev_total_rows);
@@ -407,12 +403,15 @@ rxvt_term::scr_reset ()
 
               copy_line (row_buf [q], prev_row_buf [p]);
             }
-          while (p != pend);
-
-          screen.cur.row += nrow - prev_nrow;
+          while (p != pend && q > 0);
         }
 
       term_start = total_rows - nrow;
+      top_row = q - term_start;
+
+      // make sure all terminal lines exist
+      while (top_row > 0)
+        scr_blank_screen_mem (ROW (--top_row), DEFAULT_RSTYLE);
 
       clamp_it (screen.cur.row, 0, nrow - 1);
       clamp_it (screen.cur.col, 0, ncol - 1);
