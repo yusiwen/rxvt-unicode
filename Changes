@@ -46,6 +46,7 @@ TODO: rclock horribly time-biased
 TODO: rclock iso date mode?
 TODO: printf "\e[4:3m" - "undercurl" - should probbaly be interpreted as underline, rather than \e[43m
 TODO: feature where I can just click on (y/p/n) when prompted after pasting text to the terminal?
+TODO: allow builtin key actrions to be remapped via keysym, e.g. "builtin:paste" or "builtin:C-M-v" or so(?)
 
 TODO: 08:11:16 <dg> in some cases printf "\e]50;\a" can be a crash
 08:11:50 <dg> it seems to depend a bit on setup, two in a row maybe needed
@@ -62,7 +63,11 @@ TODO: nmeum reports that when the wm resizes urxvt while it opens, the prompt is
 of the window, rather than near the top. this behaviour change wss part of the wrapmode fix, and should normally
 prevent from readline jumping around on resizes. running urxvt with the exact geometry that the wm will assign "fixed" this.
 https://github.com/exg/rxvt-unicode/commit/1eb2c326cb88ee7bae01e995a16829746bfe374e
+TODO: maybe have matrix=0.9 0 0 1 in the faq somewhere, to squish too-wide secondary fonts?
 
+	- NOTICE: due to unforseen circumstances, we could not get a proper fix for
+          the cursor positon on resize issues, but decided to release anyway for the
+          other bugfixes.
         - fix memory leak when a background expression uses the muladd
           or focus_fade operators (reported by Erik-Jan).
         - fix reference counting of values returned by some perl bindings.
