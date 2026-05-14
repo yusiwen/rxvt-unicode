@@ -432,6 +432,7 @@ rxvt_font_default::draw (rxvt_drawable &d, int x, int y,
                         XChangeGC (disp, gc, GCFillStyle, &gcv);
                       }
                     break;
+
                   case 2: // arc
                     XDrawArc (disp, d, gc,
                               x1 - W/2, y1 - H/2, W-1, H-1,
@@ -472,6 +473,7 @@ rxvt_font_default::draw (rxvt_drawable &d, int x, int y,
       else
         switch (t)
           {
+            case ' ':
             case '\t':
             case ZERO_WIDTH_CHAR:
             case NOCHAR:
