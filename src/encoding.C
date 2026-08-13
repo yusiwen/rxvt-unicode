@@ -312,5 +312,5 @@ rxvt_compose (unicode_t c1, unicode_t c2)
 bool unicode::is_space (unicode_t c)
 {
   return IS_SPACE (c)
-         || c == 0x09; // exclude tabs, too, as we store them in the buffer
+         && c != 0x09; // exclude tabs, too, as we store them in the buffer
 }
