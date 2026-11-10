@@ -89,9 +89,10 @@ TODO: pixel droppings for 촬촬촬촬촬촬촬촬촬촬촬촬촬촬촬촬촬촬
           (patch by sxzzsf).
         - add emoji test character, so that emoji-only fonts can be used without
           any tricks.
-        - urxvt assumes every font has spac,e but the built-in font did not have one,
+        - urxvt assumes every font has space, but the built-in font did not have one,
           causing occasional rectangles in tetriscurses (analyzed by Mikachu's LLM
           website).
+        - add DECSCUSR 7 for the "power-up" configuration.
 
 9.31 Mon 02 Jan 2023 18:13:16 CET
 	- implement a fix for CVE-2022-4170 (reported and analyzed by David Leadbeater).
