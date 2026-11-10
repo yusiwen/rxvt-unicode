@@ -724,7 +724,8 @@ rxvt_term::init_resources (int argc, const char *const *argv)
   else
     multiClickTime = 500;
 
-  cursor_type = option (Opt_cursorUnderline) ? 1 : 0;
+  cursor_type =  option (Opt_cursorUnderline) ? 1 : 0;
+  cursor_blink = option (Opt_cursorBlink)     ? 1 : 0;
 
   /* no point having a scrollbar without having any scrollback! */
   if (!saveLines)

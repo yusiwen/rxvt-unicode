@@ -1047,7 +1047,7 @@ rxvt_term::cursor_blink_reset ()
       want_refresh = 1;
     }
 
-  if (option (Opt_cursorBlink) || (priv_modes & PrivMode_BlinkingCursor))
+  if (cursor_blink || (priv_modes & PrivMode_BlinkingCursor))
     cursor_blink_ev.again ();
   else
     cursor_blink_ev.stop ();
@@ -1766,7 +1766,7 @@ rxvt_term::focus_in ()
         }
 #endif
 #if CURSOR_BLINK
-      if (option (Opt_cursorBlink))
+      if (cursor_blink)
         cursor_blink_ev.again ();
 #endif
 #if OFF_FOCUS_FADING
@@ -1817,7 +1817,7 @@ rxvt_term::focus_out ()
         XUnsetICFocus (Input_Context);
 #endif
 #if CURSOR_BLINK
-      if (option (Opt_cursorBlink))
+      if (cursor_blink)
         cursor_blink_ev.stop ();
 
       hidden_cursor = 0;
@@ -2400,7 +2400,8 @@ rxvt_term::next_char () noexcept
 
       // assume wchar == unicode
       cmdbuf_ptr += len;
-      return wc & UNICODE_MASK;
+      wc &= UNICODE_MASK;
+      return ecb_unlikely (wc == NOCHAR) ? REPLACEMENT_CHAR : wc;
     }
 
   return NOCHAR;
@@ -3270,7 +3271,7 @@ rxvt_term::get_to_st (string_term &st)
 
       seen_esc = false;
 
-      if (n >= sizeof (string) - 1)
+      if (n >= ecb_array_length (string) - 1)
         // stop at some sane length
         return NULL;
 
@@ -4116,18 +4117,26 @@ rxvt_term::process_sgr_mode (unsigned int nargs, const int *arg)
 void
 rxvt_term::set_cursor_style (int style)
 {
-  if (!IN_RANGE_INC (style, 0, 6))
+  if (!IN_RANGE_INC (style, 0, 7))
     return;
 
   if (style == 0)
     style = 1;
 
-  cursor_type = (style - 1) / 2;
-  set_option (Opt_cursorUnderline, cursor_type == 1);
-
+  if (style == 7)
+    {
+      cursor_type  = option (Opt_cursorUnderline) ? 1 : 0;
+      cursor_blink = option (Opt_cursorBlink)     ? 1 : 0;
+    }
+  else
+    {
+      cursor_type = (style - 1) / 2;
 #ifdef CURSOR_BLINK
-  set_option (Opt_cursorBlink, style & 1);
+      cursor_blink = style & 1;
+    }
   cursor_blink_reset ();
+#else
+    }
 #endif
 
   want_refresh = 1;

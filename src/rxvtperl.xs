@@ -1949,6 +1949,7 @@ rxvt_term::option (U8 optval, int set = -1)
                     break;
 #ifdef CURSOR_BLINK
                   case Opt_cursorBlink:
+                    THIS->cursor_blink = set ? 1 : 0;
                     THIS->cursor_blink_reset ();
                     break;
 #endif
