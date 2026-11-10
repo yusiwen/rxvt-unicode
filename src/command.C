@@ -3270,7 +3270,7 @@ rxvt_term::get_to_st (string_term &st)
 
       seen_esc = false;
 
-      if (n >= sizeof (string) - 1)
+      if (n >= ecb_array_length (string) - 1)
         // stop at some sane length
         return NULL;
 
