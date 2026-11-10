@@ -72,6 +72,8 @@ TODO: pixel droppings for 촬촬촬촬촬촬촬촬촬촬촬촬촬촬촬촬촬촬
           other bugfixes.
 	- fix incorrect array bounds check when parsing OSC/DCS (reported by Tristan).
         - add DECSCUSR 7 for the "power-up" configuration, similar to xterm.
+        - mbrtowc can decode NOCHAR, which collides with urxvt's internal use,
+          potentially freezing the terminal (Mikachu).
         - fix memory leak when a background expression uses the muladd
           or focus_fade operators (reported by Erik-Jan).
         - fix reference counting of values returned by some perl bindings.

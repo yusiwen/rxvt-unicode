@@ -2400,7 +2400,8 @@ rxvt_term::next_char () noexcept
 
       // assume wchar == unicode
       cmdbuf_ptr += len;
-      return wc & UNICODE_MASK;
+      wc &= UNICODE_MASK;
+      return ecb_unlikely (wc == NOCHAR) ? REPLACEMENT_CHAR : wc;
     }
 
   return NOCHAR;
